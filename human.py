@@ -117,6 +117,7 @@ class Human(threading.Thread):
 
     def action_selection(self):
         available_tasks = self.get_available_tasks()
+        # just for test
         # print(available_tasks)
         not_allocated_tasks = list(set(available_tasks) - set(self.task.tasks_allocated_to_human))
         not_allocated_tasks = list(set(not_allocated_tasks) - set(self.human_wrong_actions))
