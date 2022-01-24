@@ -1,0 +1,5 @@
+y = 0:0.2:1;
+t_final = 10;
+t= 0:t_final;
+
+py = ones(length(y),1)*(1/length(y))
