@@ -401,6 +401,7 @@ class Robot(threading.Thread):
                         'object': self.task.available_color_table[col][-1], 'color': col, 'wait_time': twait}
             self.task.available_color_human_tray[ds] = self.task.available_color_table[col][-1]
 
+
             # self.task.finished_tasks.append(i)
         return act_info
 
@@ -438,12 +439,11 @@ class Robot(threading.Thread):
                     hum_new_actions.append(i)
             # hum_new_actions = list(set(self.human.done_tasks) - set(self.pre_human_tasks_done))
             if hum_new_actions:
-                if self.cur_allocated_tasks or self.task.tasks_allocated_to_robot:  # Todo: check why I added self.cur_allocated_task
+                if self.cur_allocated_tasks:
                     for ts in hum_new_actions:
                         if ts in self.cur_allocated_tasks:
                             haction = 1
-                        elif ts in self.task.tasks_allocated_to_robot:
-                            haction = 0  # Todo: this reduces p_conform significantly
+                            # self.interaction_history.append(1)
                         else:
                             haction = 0
                             # self.interaction_history.append(0)

@@ -10,7 +10,6 @@ class Task:
         self.task_only_robot = task_only_robot
         self.task_both = task_both
         self.tasks_allocated_to_human = []
-        self.tasks_allocated_to_robot = []
 
         self.n_task_human_only = None
         self.n_task_robot_only = None
@@ -61,7 +60,6 @@ class Task:
                                       'b': [14, 15, 16, 17, 18, 19, 20],
                                       'r': [21, 22, 23, 24, 25, 26, 27]}
         self.available_color_human_tray = {1: [], 2: [], 3: [], 4: []}
-        self.available_color_robot_tray = {1: [], 2: [], 3: [], 4: []}
 
     # def all_time(self):
     #     self.t_hum_all = self.t_both_human + self.t_only_human + [np.NaN] * self.n_task_robot_only

@@ -130,7 +130,7 @@ class Human(threading.Thread):
             ws = self.task.task_to_do[next_action][0]
             act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
                         'destination_num': ds,
-                        'object': self.task.available_color_tray[ws], 'wait_time': 0}
+                        'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
 
         elif not_allocated_tasks:
             ac = random.randint(0, len(not_allocated_tasks) - 1)
@@ -159,7 +159,7 @@ class Human(threading.Thread):
             ws = self.task.task_to_do[next_action][0]
             act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
                         'destination_num': ds,
-                        'object': self.task.available_color_tray[ws], 'wait_time': 0}
+                        'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
         else:
             next_action = -1
 

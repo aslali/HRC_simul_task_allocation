@@ -76,33 +76,46 @@ class Human(threading.Thread):
 
     def human_object_move(self, start, object_num, goal, goal_num):
 
-        s = np.array(self.hpoints[start])
-        g = np.array(self.hpoints[goal])
-        name = start + goal if start + goal in self.slopdist else goal + start
-        t = round(self.slopdist[name][0] / self.speed)
-        x = np.linspace(s[0], g[0], round(1 / self.time_step) * t)
-        y = self.slopdist[name][1] * (x - s[0]) + s[1]
-        xcur = s[0]
-        ycur = s[1]
-        self.sim_env.move_object(object_num, goal=[xcur, ycur])
-        self.sim_env.root.update_idletasks()
-
-        count = 1
-        while abs(xcur - g[0]) > 0.0:
-            xcur = x[count]
-            ycur = y[count]
-            self.sim_env.move_human_robot([xcur, ycur], 'human')
-            self.sim_env.move_object(object_num, goal=[xcur, ycur])
-            time.sleep(self.time_step)
-            count += 1
-        self.sim_env.move_object(object_num, destination_name=goal, destination_num=goal_num)
-        self.sim_env.root.update_idletasks()
-
-    def human_action(self, start, destination, destination_num, object_num, wait_time=0):
-        if wait_time > 0:
-            time.sleep(wait_time)
+        if goal == 'rTray':
+            self.sim_env.move_object(object_num, destination_name=goal, destination_num=goal_num)
+            self.sim_env.root.update_idletasks()
         else:
-            self.human_object_move(start, object_num, destination, destination_num)
+            s = np.array(self.hpoints[start])
+            g = np.array(self.hpoints[goal])
+            name = start + goal if start + goal in self.slopdist else goal + start
+            t = round(self.slopdist[name][0] / self.speed)
+            x = np.linspace(s[0], g[0], round(1 / self.time_step) * t)
+            y = self.slopdist[name][1] * (x - s[0]) + s[1]
+            xcur = s[0]
+            ycur = s[1]
+            self.sim_env.move_object(object_num, goal=[xcur, ycur])
+            self.sim_env.root.update_idletasks()
+
+            count = 1
+            while abs(xcur - g[0]) > 0.0:
+                xcur = x[count]
+                ycur = y[count]
+                self.sim_env.move_human_robot([xcur, ycur], 'human')
+                self.sim_env.move_object(object_num, goal=[xcur, ycur])
+                time.sleep(self.time_step)
+                count += 1
+            self.sim_env.move_object(object_num, destination_name=goal, destination_num=goal_num)
+            self.sim_env.root.update_idletasks()
+
+    def human_action(self, next_action):
+
+        start = next_action['start']
+        destination = next_action['destination']
+        destination_num = next_action['destination_num']
+        object_num = next_action['object']
+        # wait_time = next_action['wait_time']
+        # if wait_time > 0:
+        #     time.sleep(wait_time)
+        # else:
+
+        self.human_object_move(start, object_num, destination, destination_num)
+
+        if destination != 'rTray':
             self.human_move(destination, start)
 
     def get_available_tasks(self):
@@ -113,17 +126,20 @@ class Human(threading.Thread):
 
             if (not robtas) and (not preced_check):
                 human_available_task.append(i)
-        return human_available_task
+
+        not_allocated_tasks = list(set(human_available_task) - set(self.task.tasks_allocated_to_human))
+        not_allocated_tasks = list(set(not_allocated_tasks) - set(self.human_wrong_actions))
+
+        tasks_to_allocate = list(set(not_allocated_tasks) - set(self.task.tasks_allocated_to_robot))
+
+        return not_allocated_tasks, tasks_to_allocate
 
     def action_selection(self):
-        available_tasks = self.get_available_tasks()
-        # just for test2
-        # print(available_tasks)
-        not_allocated_tasks = list(set(available_tasks) - set(self.task.tasks_allocated_to_human))
-        not_allocated_tasks = list(set(not_allocated_tasks) - set(self.human_wrong_actions))
-        # print(not_allocated_tasks)
+        not_allocated_tasks, tasks_to_allocate = self.get_available_tasks()
+
         pf = 1  # random.random()
         wrong_action = False
+        alloc_human = False
         if self.task.tasks_allocated_to_human and pf < self.p_conformity:
             next_action = self.task.tasks_allocated_to_human[0]
             self.task.tasks_allocated_to_human.pop(0)
@@ -131,25 +147,37 @@ class Human(threading.Thread):
             ws = self.task.task_to_do[next_action][0]
             act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
                         'destination_num': ds,
-                        'object': self.task.available_color_tray[ws], 'wait_time': 0}
+                        'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
 
         elif not_allocated_tasks:
-            ac = random.randint(0, len(not_allocated_tasks) - 1)
-            next_action = not_allocated_tasks[ac]
+            next_action = random.choice(not_allocated_tasks)
             col = self.task.task_to_do[next_action][2]
-            if 0 < self.p_error:  # random.random()
-                colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
-                wrong_col = random.choice(colp)
-                col = wrong_col
-                wrong_action = True
-            act_info = {'start': 'T', 'destination': 'W{}'.format(self.task.task_to_do[next_action][0]),
-                        'destination_num': self.task.task_to_do[next_action][1],
-                        'object': self.task.available_color_table[col][-1], 'wait_time': 0}
-            self.task.available_color_table[col].pop()
-            ll = self.sim_env.table_blocks[col]['status']
-            ito = len(ll) - 1 - ll[::-1].index(1)
-            # ito = self.sim_env.table_blocks[col]['number'].index(act_info['object'])
-            self.sim_env.table_blocks[col]['status'][ito] = 0
+            if next_action in tasks_to_allocate and (random.random() < 1.4 or self.p_conformity < 1.3):
+                act_info = {'start': 'T', 'destination': 'rTray',
+                            'destination_num': self.task.task_to_do[next_action][0],
+                            'object': self.task.available_color_table[col][-1], 'wait_time': 0}
+
+                self.task.available_color_table[col].pop()
+                ll = self.sim_env.table_blocks[col]['status']
+                ito = len(ll) - 1 - ll[::-1].index(1)
+                self.sim_env.table_blocks[col]['status'][ito] = 0
+                self.task.tasks_allocated_to_robot.append(next_action)
+                alloc_human = True
+
+            else:
+                if 0 < self.p_error:  # random.random()
+                    colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
+                    wrong_col = random.choice(colp)
+                    col = wrong_col
+                    wrong_action = True
+
+                act_info = {'start': 'T', 'destination': 'W{}'.format(self.task.task_to_do[next_action][0]),
+                            'destination_num': self.task.task_to_do[next_action][1],
+                            'object': self.task.available_color_table[col][-1], 'wait_time': 0}
+                self.task.available_color_table[col].pop()
+                ll = self.sim_env.table_blocks[col]['status']
+                ito = len(ll) - 1 - ll[::-1].index(1)
+                self.sim_env.table_blocks[col]['status'][ito] = 0
 
         elif self.task.tasks_allocated_to_human:
             ac = random.randint(0, len(self.task.tasks_allocated_to_human) - 1)
@@ -160,28 +188,18 @@ class Human(threading.Thread):
             ws = self.task.task_to_do[next_action][0]
             act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
                         'destination_num': ds,
-                        'object': self.task.available_color_tray[ws], 'wait_time': 0}
-        else:
-            next_action = -1
+                        'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
 
-        if next_action >= 0:
-            if wrong_action:
-                self.human_wrong_actions.append(next_action)
-                self.wrong_action_info[next_action] = {'color': col, 'object_num': act_info['object'],
-                                                       'workspace': act_info['destination'],
-                                                       'position_num': act_info['destination_num']}
-            else:
-                self.task.finished_tasks.append(next_action)
-            self.done_tasks.append(next_action)
+        if wrong_action:
+            self.human_wrong_actions.append(next_action)
+            self.wrong_action_info[next_action] = {'color': col, 'object_num': act_info['object'],
+                                                   'workspace': act_info['destination'],
+                                                   'position_num': act_info['destination_num']}
+        elif alloc_human:
+            pass
         else:
-            act_info = {'start': '0', 'destination': '0',
-                        'destination_num': '0',
-                        'object': '0', 'wait_time': 2}
-
-        # if next_action < 0:
-        #     act_info = {'start': '0', 'destination': '0',
-        #                 'destination_num': '0',
-        #                 'object': '0', 'wait_time': 10}
+            self.task.finished_tasks.append(next_action)
+        self.done_tasks.append(next_action)
 
         return act_info, next_action
 
@@ -198,8 +216,7 @@ class Human(threading.Thread):
                 self.task.remove_finished_task_precedence()
                 action, action_num = self.action_selection()
                 # print(self.task.tasks_allocated_to_human)
-                self.human_action(action['start'], action['destination'], action['destination_num'],
-                                  action['object'], action['wait_time'])
+                self.human_action(action)
 
             # if action_num >= 0:
             #     self.task.finished_tasks.append(action_num)

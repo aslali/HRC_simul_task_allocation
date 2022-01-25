@@ -125,15 +125,10 @@ class Planner:
                 x_vars[i].setInitialValue(self.last_selection["x{0}".format(i)].value())
         z_var = plp.LpVariable('9999', lowBound=0, cat='Continuous')
 
-        alloc_task_human = [0] * task.n_task_total
+        alloc_task = [0] * task.n_task_total
         for i in task.remained_tasks:
             if i in task.tasks_allocated_to_human:
-                alloc_task_human[i] = 1
-
-        alloc_task_robot = [0] * task.n_task_total
-        for i in task.remained_tasks:
-            if i in task.tasks_allocated_to_robot:
-                alloc_task_robot[i] = 1
+                alloc_task[i] = 1
 
         constraints = {1: opt_model.addConstraint(
             plp.LpConstraint(
@@ -145,7 +140,7 @@ class Planner:
             2: opt_model.addConstraint(
                 plp.LpConstraint(
                     e=z_var - plp.lpSum(
-                        (1 - x_vars[i]) * ((task.t_task_all[i][1] * (1 + self.p_human_allocation * alloc_task_human[i])
+                        (1 - x_vars[i]) * ((task.t_task_all[i][1] * (1 + self.p_human_allocation * alloc_task[i])
                                             + self.p_human_error * error_penalty) * 1
                                            + rpenalty * (1 - 1))
                         for i in task.remained_task_both),

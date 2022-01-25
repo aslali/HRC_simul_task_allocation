@@ -19,8 +19,7 @@ class SHSCPackaging:
         self.tray_num = []
         self.tray_status = []
         self.tray_col = []
-        self.h_tray_pos = []
-        self.r_tray_pos = []
+        self.tray_pos = []
         self.block_number = []
         self.block_status = []
         self.block_handle = []
@@ -178,34 +177,19 @@ class SHSCPackaging:
                                      self.table_h + 1, self.field_height // 2 + self.table_w // 2, width=2, outline='#000',
                                      fill='gray')
 
-        # R_Tray
+        # Tray
         xot = 20
         wtray = 35
-        htray = 35
-        yoc = self.field_height // 2 - wtray // 2 - 100
+        htray = 40
+        yoc = self.field_height // 2 - wtray // 2 - 80
         for j in range(0, 4):
             self.canvas.create_rectangle(xot, yoc,
                                          xot + wtray, yoc + htray, width=2, outline='#000', fill='#fff')
             self.canvas.create_text((xot + wtray // 2, yoc - 10), text=f'W{j + 1}')
-            self.h_tray_pos.append([xot, yoc, xot + wtray, yoc + htray])
+            self.tray_pos.append([xot, yoc, xot + wtray, yoc + htray])
             # self.tray_col.append(tcol[j])
-            # self.tray_status.append('empty')
-            # self.tray_num.append(j)
-            xot += wtray + 10
-
-        # H_Tray
-        xot = 20
-        wtray = 35
-        htray = 35
-        yoc = self.field_height // 2 + wtray // 2 - 100
-        for j in range(0, 4):
-            self.canvas.create_rectangle(xot, yoc,
-                                         xot + wtray, yoc + htray, width=2, outline='#000', fill='#fff')
-            # self.canvas.create_text((xot + wtray // 2, yoc - 10), text=f'W{j + 1}')
-            self.r_tray_pos.append([xot, yoc, xot + wtray, yoc + htray])
-            # self.tray_col.append(tcol[j])
-            # self.tray_status.append('empty')
-            # self.tray_num.append(j)
+            self.tray_status.append('empty')
+            self.tray_num.append(j)
             xot += wtray + 10
 
         # Human
@@ -322,10 +306,8 @@ class SHSCPackaging:
                 gp = self.ws3_pos[destination_num - 1][:]
             elif destination_name == 'W4':
                 gp = self.ws4_pos[destination_num - 1][:]
-            elif destination_name == 'hTray':
-                gp = self.h_tray_pos[destination_num - 1][:]
-            elif destination_name == 'rTray':
-                gp = self.r_tray_pos[destination_num - 1][:]
+            elif destination_name == 'Tray':
+                gp = self.tray_pos[destination_num - 1][:]
             else:
                 # gp = 0
                 raise ValueError('destination is not correct')
