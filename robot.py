@@ -318,12 +318,13 @@ class Robot(threading.Thread):
             self.robot_object_move_apf(start=destination, object_num=object_num, goal=start, color=next_action['color'])
             self.task.available_color_table[next_action['color']].append(object_num)
             ll = self.sim_env.table_blocks[next_action['color']]['status']
-            # ito = self.sim_env.table_blocks[next_action['color']]['number'].index(object_num)
             ito = ll.index(0)
             self.sim_env.table_blocks[next_action['color']]['status'][ito] = 1
+        elif next_action['type'] == 'tray':
+            self.robot_object_move_apf(start=start, object_num=object_num, goal=destination, goal_num=destination_num)
+            self.robot_move_apf(destination, start)
         else:
             self.task.available_color_table[next_action['color']].pop()
-            # ito = self.sim_env.table_blocks[next_action['color']]['number'].index(next_action['object'])
             ll = self.sim_env.table_blocks[next_action['color']]['status']
             ito = len(ll) - 1 - ll[::-1].index(1)
             self.sim_env.table_blocks[next_action['color']]['status'][ito] = 0
@@ -356,21 +357,7 @@ class Robot(threading.Thread):
         tt = list(timerob)
         ac = tt[count]
         twait = 0
-        # if count == 0:
-        #     if timerob[tt[count]] != 0:
-        #         twait = timerob[tt[count]]
-        #     else:
-        #         ac = tt[count]
-        # else:
-        #     if timerob[tt[count]] > timerob[tt[count - 1]] + dtask[tt[count - 1]]:
-        #         twait = timerob[tt[count]] - timerob[tt[count - 1]] + dtask[tt[count - 1]]
-        #     else:
-        #         ac = tt[count]
-        # if twait > 0:
-        #     act_info = {'type': 'normal','start': '0', 'destination': '0',
-        #                 'destination_num': '0',
-        #                 'object': '0', 'wait_time': twait}
-        # else:
+
         if ac in self.task.remained_tasks:
             if ac in self.task.human_error_tasks:
                 act_info = {'type': 'error', 'start': 'T', 'destination': 'W{}'.format(self.task.task_to_do[ac][0]),
@@ -380,12 +367,18 @@ class Robot(threading.Thread):
                 self.task.finished_tasks.append(ac)
             else:
                 col = self.task.task_to_do[ac][2]
-                act_info = {'type': 'normal', 'start': 'T', 'destination': 'W{}'.format(self.task.task_to_do[ac][0]),
-                            'destination_num': self.task.task_to_do[ac][1], 'color': col,
-                            'object': self.task.available_color_table[col][-1], 'wait_time': twait}
-                # self.task.available_color_table[col].pop()
-                # ito = self.sim_env.table_blocks[col]['number'].index(act_info['object'])
-                # self.sim_env.table_blocks[col]['status'][ito] = 0
+                if ac in self.task.tasks_allocated_to_robot:
+                    ds = self.task.task_to_do[ac][1]
+                    ws = self.task.task_to_do[ac][0]
+                    self.task.tasks_allocated_to_robot.remove(ac)
+                    act_info = {'type': 'tray', 'start': 'T', 'destination': 'W{}'.format(ws),
+                                'destination_num': ds,
+                                'object': self.task.available_color_robot_tray[ws], 'wait_time': 0, 'color': col}
+                else:
+                    act_info = {'type': 'normal', 'start': 'T',
+                                'destination': 'W{}'.format(self.task.task_to_do[ac][0]),
+                                'destination_num': self.task.task_to_do[ac][1], 'color': col,
+                                'object': self.task.available_color_table[col][-1], 'wait_time': twait}
                 self.task.finished_tasks.append(ac)
         else:
             for i in precedence:

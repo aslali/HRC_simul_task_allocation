@@ -139,7 +139,7 @@ class Planner:
             plp.LpConstraint(
                 e=z_var - plp.lpSum(
                     x_vars[i] * (task.t_task_all[i][0] * self.p_human_allocation + hpenalty * (
-                            1 - self.p_human_allocation))
+                            1 - self.p_human_allocation) + hpenalty * alloc_task_robot[i])
                     for i in task.remained_task_both),
                 sense=plp.LpConstraintGE, rhs=0, name="constraint_1")),
             2: opt_model.addConstraint(

@@ -69,7 +69,10 @@ class SHSCPackaging:
         x14 = 50
         y23 = 100
         db = 35
-        # Workspace 1
+
+        ###################################################################################
+        ###################################################################################
+        ################################### Workspace 1 ###################################
         d1 = (w_workspace - 5 * db) // 2
         d11 = (w_workspace - 5 * db // 2) // 2
         d2 = 22
@@ -92,10 +95,9 @@ class SHSCPackaging:
         for i in range(5):
             self.canvas.create_rectangle(bx14, h_workspace, bx14 + db // 2, 0 + h_workspace + db // 2, width=2,
                                          outline='#000', fill=self.pattern_col[(1, i + 1)])
-            # self.canvas.create_text((bx14 + db // 4, d2 + db // 4), text=f'{i + 1}')
             bx14 += db // 2
 
-        # Workspace 4
+        ################################### Workspace 4 ###################################
         self.canvas.create_rectangle(self.field_width // 2 - w_workspace // 2 - x14,
                                      self.field_height - h_workspace - 1,
                                      self.field_width // 2 + w_workspace // 2 - x14, self.field_height - 1, width=2,
@@ -122,10 +124,9 @@ class SHSCPackaging:
                                          width=2,
                                          outline='#000',
                                          fill=self.pattern_col[(4, i + 1)])
-            # self.canvas.create_text((bx14 + db // 2, self.field_height - 1 - d2 - db // 2), text=f'{i + 1}')
             bx14 += db // 2
 
-        # Workspace 2
+        ################################### Workspace 2 ###################################
         self.canvas.create_rectangle(self.field_width - h_workspace - 1, y23,
                                      self.field_width - 1, y23 + w_workspace, width=2, outline='#000', fill='gray')
         self.canvas.create_text((self.field_width - h_workspace + 10, y23 + w_workspace // 2), text='W2',
@@ -145,10 +146,9 @@ class SHSCPackaging:
             self.canvas.create_rectangle(self.field_width - db // 2 - h_workspace - 1, by23,
                                          self.field_width - 1 - h_workspace, by23 + db // 2,
                                          width=2, outline='#000', fill=self.pattern_col[(2, i + 1)])
-            # self.canvas.create_text((self.field_width - db // 2 - d2 - 1, by23 + db // 2), text=f'{i + 1}')
             by23 += db // 2
 
-        # Workspace 3
+        ################################### Workspace 3 ###################################
         self.canvas.create_rectangle(self.field_width - h_workspace - 1, self.field_height - y23 - w_workspace,
                                      self.field_width - 1, self.field_height - y23, width=2, outline='#000',
                                      fill='gray')
@@ -170,52 +170,59 @@ class SHSCPackaging:
                                          self.field_width - 1 - h_workspace, by23 + db // 2,
                                          width=2,
                                          outline='#000', fill=self.pattern_col[(3, i + 1)])
-            # self.canvas.create_text((self.field_width - db // 2 - d2 - 1, by23 + db // 2), text=f'{i + 1}')
             by23 += db // 2
-        # Objects' Tables
+
+        ###################################################################################
+        ###################################################################################
+        ################################# Objects' Tables #################################
 
         self.canvas.create_rectangle(1, self.field_height // 2 - self.table_w // 2,
-                                     self.table_h + 1, self.field_height // 2 + self.table_w // 2, width=2, outline='#000',
+                                     self.table_h + 1, self.field_height // 2 + self.table_w // 2, width=2,
+                                     outline='#000',
                                      fill='gray')
 
-        # R_Tray
-        xot = 20
+        ###################################################################################
+        ###################################################################################
+        ###################################### R_Tray #####################################
+        xot = 10
         wtray = 35
         htray = 35
         yoc = self.field_height // 2 - wtray // 2 - 100
         for j in range(0, 4):
             self.canvas.create_rectangle(xot, yoc,
                                          xot + wtray, yoc + htray, width=2, outline='#000', fill='#fff')
-            self.canvas.create_text((xot + wtray // 2, yoc - 10), text=f'W{j + 1}')
+            self.canvas.create_text((xot + wtray // 2, yoc - 10), text=f'W{j + 1}', font=('TkDefaultFont', 10))
             self.h_tray_pos.append([xot, yoc, xot + wtray, yoc + htray])
             # self.tray_col.append(tcol[j])
             # self.tray_status.append('empty')
             # self.tray_num.append(j)
-            xot += wtray + 10
-
-        # H_Tray
-        xot = 20
+            xot += wtray + 5
+        aaaa = self.canvas.create_text((xot + wtray // 3, yoc + htray // 2), text='H', font=('TkDefaultFont', 15))
+        ##################################### H_Tray #####################################
+        xot = 10
         wtray = 35
         htray = 35
         yoc = self.field_height // 2 + wtray // 2 - 100
         for j in range(0, 4):
             self.canvas.create_rectangle(xot, yoc,
                                          xot + wtray, yoc + htray, width=2, outline='#000', fill='#fff')
-            # self.canvas.create_text((xot + wtray // 2, yoc - 10), text=f'W{j + 1}')
             self.r_tray_pos.append([xot, yoc, xot + wtray, yoc + htray])
-            # self.tray_col.append(tcol[j])
-            # self.tray_status.append('empty')
-            # self.tray_num.append(j)
-            xot += wtray + 10
+            xot += wtray + 5
+        self.canvas.create_text((xot + wtray // 3, yoc + htray // 2), text='R', font=('TkDefaultFont', 15))
 
-        # Human
+###################################################################################
+###################################################################################
+###################################### Human ######################################
         rhuman = 25
         self.human_handle = self.canvas.create_oval(self.table_h + 100, self.field_height // 2 - 110,
                                                     self.table_h + 100 + 2 * rhuman,
                                                     self.field_height // 2 - 110 + 2 * rhuman, width=0,
                                                     outline='#000', fill='orange')
+        self.human_handle_text = self.canvas.create_text((self.table_h + 100 + rhuman, self.field_height // 2 - 110 + rhuman)
+                                                         , text='H', font=('TkDefaultFont', 15))
         self.human_pos_table = [self.table_h + 10, self.field_height // 2 - 110]
         self.human_pos = [self.table_h + 100, self.field_height // 2 - 110]
+        self.human_pos_text = [self.table_h + 100 + rhuman, self.field_height // 2 - 110 + rhuman]
         # self.human_handle = self.canvas.create_oval(self.field_width // 2 - w_workspace // 1.5, h_workspace + 20,
         #                                             self.field_width // 2 - w_workspace // 1.5 + 2 * rhuman,
         #                                             h_workspace + 20 + 2 * rhuman, width=0.01,
@@ -243,13 +250,16 @@ class SHSCPackaging:
                         'W3': [self.field_width - h_workspace - 20 - 2 * rhuman, self.field_height - y23 - w_workspace]
                         }
 
-        # robot
+###################################### robot ######################################
         rrobot = 25
         self.robot_handle = self.canvas.create_oval(self.table_h + 10, self.field_height // 2 + 50,
                                                     self.table_h + 10 + 2 * rrobot,
                                                     self.field_height // 2 + 50 + 2 * rrobot, width=0,
                                                     outline='#000', fill='blue')
+        self.robot_handle_text = self.canvas.create_text((self.table_h + 10 + rrobot, self.field_height // 2 + 50 + rrobot),
+                                                         text='R', font=('TkDefaultFont', 15))
         self.robot_pos = [self.table_h + 10, self.field_height // 2 + 50]
+        self.robot_pos_text = [self.table_h + 10 + rrobot, self.field_height // 2 + 50 + rrobot]
         # self.robot_handle = self.canvas.create_oval(self.field_width // 2 - w_workspace // 100.5, h_workspace + 20,
         #                                             self.field_width // 2 - w_workspace // 100.5 + 2 * rrobot,
         #                                             h_workspace + 20 + 2 * rrobot, width=0.01,
@@ -278,8 +288,9 @@ class SHSCPackaging:
                         'W3': [self.field_width - h_workspace - 20 - 2 * rrobot,
                                self.field_height - y23 - w_workspace / 4]
                         }
-
-        # Objects
+###################################################################################
+###################################################################################
+##################################### Objects #####################################
         obj_color = ['#00a933', '#ffff00', '#2a6099', '#ff0000']
         color_name = ['g', 'y', 'b', 'r']
         # random.seed(4)
@@ -345,12 +356,18 @@ class SHSCPackaging:
             dhx = new_pos[0] - self.human_pos[0]
             dhy = new_pos[1] - self.human_pos[1]
             self.canvas.move(self.human_handle, dhx, dhy)
+            self.canvas.move(self.human_handle_text, dhx, dhy)
             self.human_pos[0] = new_pos[0]
             self.human_pos[1] = new_pos[1]
+            self.human_pos_text[0] += dhx
+            self.human_pos_text[1] += dhy
         else:
             dhx = new_pos[0] - self.robot_pos[0]
             dhy = new_pos[1] - self.robot_pos[1]
             self.canvas.move(self.robot_handle, dhx, dhy)
+            self.canvas.move(self.robot_handle_text, dhx, dhy)
             self.robot_pos[0] = new_pos[0]
             self.robot_pos[1] = new_pos[1]
+            self.robot_pos_text[0] += dhx
+            self.robot_pos_text[1] += dhy
         self.root.update_idletasks()

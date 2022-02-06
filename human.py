@@ -123,12 +123,14 @@ class Human(threading.Thread):
         for i in self.task.remained_tasks:
             robtas = i in self.task.remained_task_robot_only
             preced_check = any(j in self.task.remained_tasks for j in self.task.task_precedence_dict[i])
+            rob_alloc = i in self.task.tasks_allocated_to_robot
+            wrong_act = i in self.human_wrong_actions
 
-            if (not robtas) and (not preced_check):
+            if (not robtas) and (not preced_check) and (not rob_alloc) and (not wrong_act):
                 human_available_task.append(i)
 
         not_allocated_tasks = list(set(human_available_task) - set(self.task.tasks_allocated_to_human))
-        not_allocated_tasks = list(set(not_allocated_tasks) - set(self.human_wrong_actions))
+        # not_allocated_tasks = list(set(not_allocated_tasks) - set(self.human_wrong_actions))
 
         tasks_to_allocate = list(set(not_allocated_tasks) - set(self.task.tasks_allocated_to_robot))
 
@@ -153,10 +155,11 @@ class Human(threading.Thread):
             next_action = random.choice(not_allocated_tasks)
             col = self.task.task_to_do[next_action][2]
             if next_action in tasks_to_allocate and (random.random() < 1.4 or self.p_conformity < 1.3):
+                ws = self.task.task_to_do[next_action][0]
                 act_info = {'start': 'T', 'destination': 'rTray',
-                            'destination_num': self.task.task_to_do[next_action][0],
+                            'destination_num': ws,
                             'object': self.task.available_color_table[col][-1], 'wait_time': 0}
-
+                self.task.available_color_robot_tray[ws] = self.task.available_color_table[col][-1]
                 self.task.available_color_table[col].pop()
                 ll = self.sim_env.table_blocks[col]['status']
                 ito = len(ll) - 1 - ll[::-1].index(1)
