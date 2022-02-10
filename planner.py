@@ -179,7 +179,7 @@ class Planner:
         return new_task_human, new_task_robot
 
     def task_scheduler(self, task_time, human_tasks, robot_tasks, precedence, precedence_type2, remaining_tasks,
-                       tasks_human_error, save=False):
+                       tasks_human_error, tasks_human_error_type1, tasks_human_error_type2, save=False):
         ntask = len(task_time)
         mlarge = plp.lpSum(task_time) * 100
         eps = 10 ** -10
@@ -196,17 +196,13 @@ class Planner:
         # Todo: Check reduction on the number of decision variables
         yr = [[plp.LpVariable(cat=plp.LpBinary, name='yr{0}_{1}'.format(robot_tasks[j], robot_tasks[k])) for k in
                range(nrtask)] for j in range(nrtask)]
+
+        yrh = [[plp.LpVariable(cat=plp.LpBinary, name='yrh{0}_{1}'.format(robot_tasks[j], human_tasks[k])) for k in
+                range(nhtask)] for j in range(nrtask)]
+
         z_var = plp.LpVariable('z', lowBound=0, cat='Integer')
 
         if self.last_scheduling is not None:
-            # for i in all_task:
-            #     pname = "s{0}".format(i)
-            #     ch = (i in human_tasks) and (i in self.previous_htasks)
-            #     cr = (i in robot_tasks) and (i in self.previous_rtasks)
-            #     cb = ch or cr
-            #
-            #     if (pname in self.last_scheduling) and cb:
-            #         s_vars[i].setInitialValue(self.last_scheduling[pname].value())
 
             for i in range(nhtask):
                 for j in range(nhtask):
@@ -222,8 +218,7 @@ class Planner:
 
         for i in all_task:
             for j in all_task:
-                if j is not i:
-                    # pcheck = j in precedence[i]  #qij
+                if j != i:
                     if i in precedence:
                         if j in precedence[i]:
                             opt_model += (s_vars[i] - (s_vars[j] + task_time[j]) >= 0, "seq{0}_{1}".format(i, j))
@@ -244,17 +239,33 @@ class Planner:
 
         comr = plp.combination(list(range(nrtask)), 2)
         for c1, c2 in comr:
-            if (robot_tasks[c1] in temp_tasks) and (robot_tasks[c2] in temp_tasks):
+            # if (robot_tasks[c1] in temp_tasks) and (robot_tasks[c2] in temp_tasks):
+            #     opt_model += (
+            #         s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + task_time[
+            #             robot_tasks[c2]] + self.allocation_time_interval) + mlarge * (1 - yr[c1][
+            #             c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
+            #
+            #     opt_model += (
+            #         s_vars[robot_tasks[c2]] - (s_vars[robot_tasks[c1]] + task_time[
+            #             robot_tasks[c1]] + self.allocation_time_interval) + mlarge * (yr[c1][
+            #             c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
+            if (robot_tasks[c1] in temp_tasks) and (robot_tasks[c2] not in temp_tasks):
                 opt_model += (
-                    s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + task_time[
-                        robot_tasks[c2]] + self.allocation_time_interval) + mlarge * (1 - yr[c1][
-                        c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
+                    s_vars[robot_tasks[c2]] - (s_vars[robot_tasks[c1]] + 1) + mlarge * (
+                            yr[c1][c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
+                opt_model += (
+                s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + task_time[robot_tasks[c2]]) + mlarge * (
+                        1 - yr[c1][
+                    c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
+
+            elif (robot_tasks[c1] not in temp_tasks) and (robot_tasks[c2] in temp_tasks):
+                opt_model += (
+                    s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + 1) + mlarge * (
+                            yr[c1][c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
 
                 opt_model += (
-                    s_vars[robot_tasks[c2]] - (s_vars[robot_tasks[c1]] + task_time[
-                        robot_tasks[c1]] + self.allocation_time_interval) + mlarge * (yr[c1][
+                    s_vars[robot_tasks[c2]] - (s_vars[robot_tasks[c1]] + task_time[robot_tasks[c1]]) + mlarge * (1-yr[c1][
                         c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
-
             else:
                 opt_model += (
                     s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + task_time[robot_tasks[c2]]) + mlarge * (
@@ -265,28 +276,30 @@ class Planner:
                     s_vars[robot_tasks[c2]] - (s_vars[robot_tasks[c1]] + task_time[robot_tasks[c1]]) + mlarge * (yr[c1][
                         c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
 
+        for i in range(nhtask):
+            for j in range(nrtask):
+                jj = robot_tasks[j]
+                ii = human_tasks[i]
+                if (jj in precedence_type2) or (jj in tasks_human_error):
+                    opt_model += (s_vars[ii] - (s_vars[jj] + task_time[jj]) + mlarge * yrh[j][i] >= 0,
+                                  "spatial{0}_{1}".format(jj, ii))
+                    # opt_model += s_vars[i] - (s_vars[j] + task_time[j]) + mlarge * (1 - yrh[j][i])
+
         for k in all_task:
             opt_model += (z_var >= s_vars[k] + task_time[k], 'aux{0}'.format(k))
-
-        if self.allocation_time_interval > 0:
-            for k in temp_tasks:
-                opt_model += (s_vars[k] >= 2 * self.allocation_time_interval, 'alloc_start{}'.format(k))
 
         rt = list(set(robot_tasks) - tasks_human_error)
         if tasks_human_error:
             start_zero_alloc = {}
             for k in precedence_type2.keys():
                 start_zero_alloc[k] = plp.LpConstraint(e=s_vars[k] - mlarge * b_vars[k],
-                                                                              name='start_zero{}'.format(k), sense=-1,
-                                                                              rhs=0)
+                                                       name='start_zero{}'.format(k), sense=-1,
+                                                       rhs=0)
                 opt_model.extend(start_zero_alloc[k].makeElasticSubProblem(penalty=100, proportionFreeBound=0.1))
                 # opt_model += (s_vars[k] <= mlarge * b_vars[k], 'start_zero{}'.format(k))
 
             opt_model += (plp.lpSum(b_vars[i] for i in precedence_type2.keys()) == len(precedence_type2) - 1, 'sumb')
-            # elcons = {}
-            # for k in tasks_human_error:
-            #     elcons['human_error'.format(k)] = plp.LpConstraint('human_error'.format(k),)
-            #     opt_model += (s_vars[k] <= mlarge * b_vars[k], 'start_zero{}'.format(k), penalty=1, proportionFreeBound = 0.01)
+
         else:
             for k in rt:
                 opt_model += (s_vars[k] <= mlarge * b_vars[k], 'start_zero{}'.format(k))

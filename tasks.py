@@ -18,6 +18,8 @@ class Task:
         self.n_task_total = None
         self.n_allocated_task = None
         self.human_error_tasks = set()
+        self.human_error_tasks_type1 = set()
+        self.human_error_tasks_type2 = set()
         self.n_tasks()
 
         # if t_only_human is not None:
@@ -103,12 +105,23 @@ class Task:
         human_error1 = human_error[:]
         while human_error1:
             lcheck = False
+            tray_error = False
             ii = human_error1[0]
             new_task_num = int('{}{}{}'.format(self.n_task_total, self.n_task_total, ii))
-            self.task_to_do[new_task_num] = (int(error_info[ii]['workspace'][1]), error_info[ii]['position_num'], error_info[ii]['color'],
-                                             error_info[ii]['object_num'], ii)
+            if error_info[ii]['workspace'] == 'rTray':
+                self.task_to_do[new_task_num] = (error_info[ii]['workspace'], error_info[ii]['position_num'],
+                                                 error_info[ii]['color'], error_info[ii]['object_num'], ii)
+                tray_error = True
+                self.human_error_tasks_type2.add(new_task_num)
+            else:
+                self.task_to_do[new_task_num] = (int(error_info[ii]['workspace'][1]), error_info[ii]['position_num'],
+                                                 error_info[ii]['color'], error_info[ii]['object_num'], ii)
+                self.human_error_tasks_type1.add(new_task_num)
+
+
 
             self.human_error_tasks.add(new_task_num)
+
             if new_task_num not in self.task_precedence_dict:
                 self.task_precedence_dict[new_task_num] = []
             for i in self.task_precedence_dict[human_error1[0]]:
@@ -128,7 +141,10 @@ class Task:
                 self.tasks_all.append(new_task_num)
                 self.task_only_robot.append(new_task_num)
                 self.n_tasks()
-                self.t_task_all[new_task_num] = (-1, 10)
+                if tray_error:
+                    self.t_task_all[new_task_num] = (-1, 3)
+                else:
+                    self.t_task_all[new_task_num] = (-1, 10)
                 self.find_remained_task()
                 human_error1.pop(0)
 
@@ -159,7 +175,7 @@ class Task:
 
                 dict_temp_type2[new_task_num] = (new_task_pred, 2)
                 new_robot_tasks.append(new_task_num)
-                task_req_times[new_task_num] = 5
+                task_req_times[new_task_num] = 3
                 new_task_num += 1
 
         # new_precedence_matrix = self.creat_precedence_matrix(dict_temp)

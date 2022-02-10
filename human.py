@@ -140,8 +140,9 @@ class Human(threading.Thread):
         not_allocated_tasks, tasks_to_allocate = self.get_available_tasks()
 
         pf = 1  # random.random()
-        wrong_action = False
-        alloc_human = False
+        wrong_action_type1 = False
+        wrong_action_type2 = False
+        alloc_robot = False
         if self.task.tasks_allocated_to_human and pf < self.p_conformity:
             next_action = self.task.tasks_allocated_to_human[0]
             self.task.tasks_allocated_to_human.pop(0)
@@ -154,8 +155,18 @@ class Human(threading.Thread):
         elif not_allocated_tasks:
             next_action = random.choice(not_allocated_tasks)
             col = self.task.task_to_do[next_action][2]
-            if next_action in tasks_to_allocate and (random.random() < 1.4 or self.p_conformity < 1.3):
+            if (next_action in tasks_to_allocate) and (random.random() < 1.4 or self.p_conformity < 1.3) and len(
+                    not_allocated_tasks) > 1:
                 ws = self.task.task_to_do[next_action][0]
+                if 0 < self.p_error:  # random.random()
+                    colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
+                    wrong_col = random.choice(colp)
+                    col = wrong_col
+                    wrong_action_type2 = True
+                else:
+                    self.task.tasks_allocated_to_robot.append(next_action)
+                    alloc_robot = True
+
                 act_info = {'start': 'T', 'destination': 'rTray',
                             'destination_num': ws,
                             'object': self.task.available_color_table[col][-1], 'wait_time': 0}
@@ -164,15 +175,13 @@ class Human(threading.Thread):
                 ll = self.sim_env.table_blocks[col]['status']
                 ito = len(ll) - 1 - ll[::-1].index(1)
                 self.sim_env.table_blocks[col]['status'][ito] = 0
-                self.task.tasks_allocated_to_robot.append(next_action)
-                alloc_human = True
 
             else:
                 if 0 < self.p_error:  # random.random()
                     colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
                     wrong_col = random.choice(colp)
                     col = wrong_col
-                    wrong_action = True
+                    wrong_action_type1 = True
 
                 act_info = {'start': 'T', 'destination': 'W{}'.format(self.task.task_to_do[next_action][0]),
                             'destination_num': self.task.task_to_do[next_action][1],
@@ -193,12 +202,12 @@ class Human(threading.Thread):
                         'destination_num': ds,
                         'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
 
-        if wrong_action:
+        if wrong_action_type1 or wrong_action_type2:
             self.human_wrong_actions.append(next_action)
             self.wrong_action_info[next_action] = {'color': col, 'object_num': act_info['object'],
                                                    'workspace': act_info['destination'],
                                                    'position_num': act_info['destination_num']}
-        elif alloc_human:
+        elif alloc_robot:
             pass
         else:
             self.task.finished_tasks.append(next_action)
