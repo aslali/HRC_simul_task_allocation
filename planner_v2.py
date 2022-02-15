@@ -114,20 +114,8 @@ class Planner:
     #     plt.close()
     #     self.gnt.clear()
 
-    def task_selection(self, task, hpenalty, rpenalty, error_penalty, prev_sol,
+    def task_selection(self, task, hpenalty, rpenalty, error_penalty,
                        save=False):  # todo: add fairness to the cost function
-
-
-        first_step_available_tasks_tray = []
-        for i in task.remained_task_both:
-            preced_check = any(j in task.remained_tasks for j in task.task_precedence_dict[i])
-            # wrong_act = i in self.human_wrong_actions
-            if not preced_check:    # and (i not in task.tasks_allocated_to_human):
-                first_step_available_tasks_tray.append(i)
-
-        first_step_available_tasks = list(set(first_step_available_tasks_tray) - set(task.tasks_allocated_to_human))
-
-
 
         nremained = len(task.remained_task_both)
         opt_model = plp.LpProblem(name="MIP_Model")
@@ -162,24 +150,12 @@ class Planner:
                                            + rpenalty * (1 - 1))
                         for i in task.remained_task_both),
                     sense=plp.LpConstraintGE, rhs=0, name="constraint_2"))}
-        # mt = max(1, len(first_step_available_tasks) - 1)
-        if first_step_available_tasks:
-            opt_model += (plp.lpSum(x_vars[i] for i in first_step_available_tasks) <= len(first_step_available_tasks) - 1, 'sumb')
-        elif first_step_available_tasks_tray:
-            opt_model += (plp.lpSum(x_vars[i] for i in first_step_available_tasks_tray) <= len(first_step_available_tasks_tray) - 1, 'sumb')
-        else:
-            ccccc= 1
-        # yprev = [[plp.LpVariable(cat=plp.LpBinary, name='d{sol}_{1}'.format(sol, i)) for i in
-        #        task.remained_task_both] for sol in prev_sol.keys()]
-
-        # for sol in prev_sol:
-        #     d_vars = {i: plp.LpVariable(cat=plp.LpBinary, name="x{0}".format(i)) for i in task.remained_task_both}
-
         objective = z_var
         opt_model.sense = plp.LpMinimize
         opt_model.setObjective(objective)
         opt_model.solve(plp.GUROBI_CMD(msg=False, warmStart=True))
-
+        # varlist = copy.copy(opt_model.variables())
+        # varlist.sort(key=lambda x: int(x.name))
         varlist = opt_model.variablesDict()
         self.last_selection = varlist
         if save:
@@ -194,6 +170,7 @@ class Planner:
                 new_task_robot.append(i)
             else:
                 new_task_human.append(i)
+        # print(varlist[:-1])
 
         for i in task.remained_task_robot_only:
             new_task_robot.append(i)
@@ -205,18 +182,14 @@ class Planner:
                        tasks_human_error, tasks_human_error_type1, tasks_human_error_type2, save=False):
         ntask = len(task_time)
         mlarge = plp.lpSum(task_time) * 100
+        eps = 10 ** -10
         nhtask = len(human_tasks)
         nrtask = len(robot_tasks)
         all_task = human_tasks + robot_tasks
         temp_tasks = list(set(all_task) - set(remaining_tasks)) + list(tasks_human_error_type2)
         opt_model = plp.LpProblem(name="sequencingOptim")
-        # s_vars = {i: plp.LpVariable(cat=plp.LpInteger, lowBound=0, name="s{0}".format(i)) for i in all_task}
-        s_vars = {}
-        for i in all_task:
-            if i in human_tasks:
-                s_vars[i] = plp.LpVariable(cat=plp.LpInteger, lowBound=3, name="s{0}".format(i))
-            else:
-                s_vars[i] = plp.LpVariable(cat=plp.LpInteger, lowBound=0, name="s{0}".format(i))
+        # s_vars = [plp.LpVariable(cat=plp.LpInteger, name="s{0}".format(i)) for i in range(0, ntask)]
+        s_vars = {i: plp.LpVariable(cat=plp.LpInteger, lowBound=0, name="s{0}".format(i)) for i in all_task}
         b_vars = {i: plp.LpVariable(cat=plp.LpBinary, name='b{}'.format(i)) for i in robot_tasks}
         yh = [[plp.LpVariable(cat=plp.LpBinary, name='yh{0}_{1}'.format(human_tasks[j], human_tasks[k])) for k in
                range(nhtask)] for j in range(nhtask)]
@@ -278,43 +251,44 @@ class Planner:
             #             c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
             if (robot_tasks[c1] in temp_tasks) and (robot_tasks[c2] not in temp_tasks):
                 opt_model += (
-                    s_vars[robot_tasks[c2]] - (s_vars[robot_tasks[c1]] + 0) + mlarge * (
+                    s_vars[robot_tasks[c2]] - (s_vars[robot_tasks[c1]] + 1) + mlarge * (
                             yr[c1][c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
                 opt_model += (
-                    s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + task_time[robot_tasks[c2]]) + mlarge * (
-                        1 - yr[c1][c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
+                s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + task_time[robot_tasks[c2]]) + mlarge * (
+                        1 - yr[c1][
+                    c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
 
             elif (robot_tasks[c1] not in temp_tasks) and (robot_tasks[c2] in temp_tasks):
                 opt_model += (
-                    s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + 0) + mlarge * (
+                    s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + 1) + mlarge * (
                             yr[c1][c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
 
                 opt_model += (
-                    s_vars[robot_tasks[c2]] - (s_vars[robot_tasks[c1]] + task_time[robot_tasks[c1]]) +
-                    mlarge * (1-yr[c1][c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
-            elif (robot_tasks[c1] not in temp_tasks) and (robot_tasks[c2] not in temp_tasks):
+                    s_vars[robot_tasks[c2]] - (s_vars[robot_tasks[c1]] + task_time[robot_tasks[c1]]) + mlarge * (1-yr[c1][
+                        c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
+            else:
                 opt_model += (
-                    s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + task_time[robot_tasks[c2]]) +
-                    mlarge * (1 - yr[c1][c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
+                    s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + task_time[robot_tasks[c2]]) + mlarge * (
+                            1 - yr[c1][
+                        c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
 
                 opt_model += (
                     s_vars[robot_tasks[c2]] - (s_vars[robot_tasks[c1]] + task_time[robot_tasks[c1]]) + mlarge * (yr[c1][
                         c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
 
-        # for i in range(nhtask):
-        #     for j in range(nrtask):
-        #         jj = robot_tasks[j]
-        #         ii = human_tasks[i]
-        #         if (jj in precedence_type2) or (jj in tasks_human_error_type2):
-        #             opt_model += (s_vars[ii] - (s_vars[jj] + task_time[jj]) + mlarge * yrh[j][i] >= 0,
-        #                           "spatial{0}_{1}".format(jj, ii))
+        for i in range(nhtask):
+            for j in range(nrtask):
+                jj = robot_tasks[j]
+                ii = human_tasks[i]
+                if (jj in precedence_type2) or (jj in tasks_human_error_type2):
+                    opt_model += (s_vars[ii] - (s_vars[jj] + task_time[jj]) + mlarge * yrh[j][i] >= 0,
+                                  "spatial{0}_{1}".format(jj, ii))
+                    # opt_model += s_vars[i] - (s_vars[j] + task_time[j]) + mlarge * (1 - yrh[j][i])
 
         for k in all_task:
             opt_model += (z_var >= s_vars[k] + task_time[k], 'aux{0}'.format(k))
 
         rt = list(set(robot_tasks) - tasks_human_error)
-
-        rt = list(set(robot_tasks)-set(precedence_type2.keys()))
         if tasks_human_error:
             start_zero_alloc = {}
             for k in precedence_type2.keys():
@@ -329,7 +303,7 @@ class Planner:
         else:
             for k in rt:
                 opt_model += (s_vars[k] <= mlarge * b_vars[k], 'start_zero{}'.format(k))
-            opt_model += (plp.lpSum(b_vars[i] for i in rt) <= len(rt) - 1, 'sumb')
+            opt_model += (plp.lpSum(b_vars[i] for i in rt) == len(rt) - 1, 'sumb')
 
         objective = z_var
         opt_model.sense = plp.LpMinimize
@@ -344,30 +318,31 @@ class Planner:
             pickle.dump([self.last_scheduling, human_tasks, robot_tasks], a_file)
             a_file.close()
         else:
-            opt_model.solve(plp.GUROBI_CMD(timeLimit=200, msg=False, warmStart=True, gapRel=0.00004))
+            opt_model.solve(plp.GUROBI_CMD(timeLimit=2, msg=False, warmStart=True, gapRel=0.4))
 
-        is_solution = opt_model.status
+        print(opt_model.status)
+
+        self.last_scheduling = opt_model.variablesDict()
+        # varlist.sort(key=lambda x: (x.name))
+        # starts = varlist[0:ntask]
         htiming = {}
         rtiming = {}
-        if is_solution == 0:
-            cccccc = 1
-        else:
-            self.last_scheduling = opt_model.variablesDict()
-            for s in s_vars:
-                if s in human_tasks:
-                    htiming[s] = s_vars[s].value()
-                else:
-                    rtiming[s] = s_vars[s].value()
+        for s in s_vars:
+            # tn = int(s.name[1:])
+            if s in human_tasks:
+                htiming[s] = s_vars[s].value()
+            else:
+                rtiming[s] = s_vars[s].value()
 
-            htiming = {k: v for k, v in sorted(htiming.items(), key=lambda item: item[1])}
-            rtiming = {k: v for k, v in sorted(rtiming.items(), key=lambda item: item[1])}
-            gnth = [(htiming[x], task_time[x]) for x in htiming]
-            gntr = [(rtiming[x], task_time[x]) for x in rtiming]
-            gnth.sort(key=lambda x: x[0])
-            gntr.sort(key=lambda x: x[0])
-            # self.gantt_chart(gnth, gntr)
+        htiming = {k: v for k, v in sorted(htiming.items(), key=lambda item: item[1])}
+        rtiming = {k: v for k, v in sorted(rtiming.items(), key=lambda item: item[1])}
+        gnth = [(htiming[x], task_time[x]) for x in htiming]
+        gntr = [(rtiming[x], task_time[x]) for x in rtiming]
+        gnth.sort(key=lambda x: x[0])
+        gntr.sort(key=lambda x: x[0])
+        # self.gantt_chart(gnth, gntr)
 
-        return rtiming, htiming, precedence, is_solution
+        return rtiming, htiming, precedence
 
     def adaptability_update(self, human_action, action_history):
 

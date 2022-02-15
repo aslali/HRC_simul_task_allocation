@@ -142,7 +142,7 @@ class Task:
                 self.task_only_robot.append(new_task_num)
                 self.n_tasks()
                 if tray_error:
-                    self.t_task_all[new_task_num] = (-1, 3)
+                    self.t_task_all[new_task_num] = (-1, 5)
                 else:
                     self.t_task_all[new_task_num] = (-1, 10)
                 self.find_remained_task()
@@ -175,7 +175,7 @@ class Task:
 
                 dict_temp_type2[new_task_num] = (new_task_pred, 2)
                 new_robot_tasks.append(new_task_num)
-                task_req_times[new_task_num] = 3
+                task_req_times[new_task_num] = 5
                 new_task_num += 1
 
         # new_precedence_matrix = self.creat_precedence_matrix(dict_temp)

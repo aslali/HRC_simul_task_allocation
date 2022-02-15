@@ -155,8 +155,9 @@ class Human(threading.Thread):
         elif not_allocated_tasks:
             next_action = random.choice(not_allocated_tasks)
             col = self.task.task_to_do[next_action][2]
-            if (next_action in tasks_to_allocate) and (random.random() < 1.4 or self.p_conformity < 1.3) and len(
-                    not_allocated_tasks) > 1:
+            cond1 = (next_action in tasks_to_allocate) and (random.random() < 1.4 or self.p_conformity < 1.3)
+            cond2 = len(not_allocated_tasks) > 1 or self.task.tasks_allocated_to_human
+            if cond1 and cond2 and False:
                 ws = self.task.task_to_do[next_action][0]
                 if 0 < self.p_error:  # random.random()
                     colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
@@ -177,7 +178,7 @@ class Human(threading.Thread):
                 self.sim_env.table_blocks[col]['status'][ito] = 0
 
             else:
-                if 0 < self.p_error:  # random.random()
+                if 5 < self.p_error:  # random.random()
                     colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
                     wrong_col = random.choice(colp)
                     col = wrong_col
@@ -201,6 +202,8 @@ class Human(threading.Thread):
             act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
                         'destination_num': ds,
                         'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
+        elif not not_allocated_tasks:
+            aaaaaaa = 1
 
         if wrong_action_type1 or wrong_action_type2:
             self.human_wrong_actions.append(next_action)

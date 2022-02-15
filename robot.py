@@ -143,7 +143,7 @@ class Robot(threading.Thread):
                         dbeta = math.atan2(ddyrep, ddxrep)
                         xrepd = cd1 * cd2 * math.cos(dbeta)
                         yrepd = cd1 * cd2 * math.sin(dbeta)
-                        print('xrep = {:f}, yrep = {:f}, xrepd = {:f}, yrepd ={:f}'.format(xrep, yrep, xrepd, yrepd))
+                        # print('xrep = {:f}, yrep = {:f}, xrepd = {:f}, yrepd ={:f}'.format(xrep, yrep, xrepd, yrepd))
                         xrep += xrepd
                         yrep += yrepd
 
@@ -254,8 +254,8 @@ class Robot(threading.Thread):
                         dbeta = math.atan2(ddyrep, ddxrep)
                         xrepd = cd1 * cd2 * math.cos(dbeta)
                         yrepd = cd1 * cd2 * math.sin(dbeta)
-                        print(
-                            'xrep1 = {:f}, yrep1 = {:f}, xrepd1 = {:f}, yrepd1 ={:f}'.format(xrep, yrep, xrepd, yrepd))
+                        # print(
+                        #     'xrep1 = {:f}, yrep1 = {:f}, xrepd1 = {:f}, yrepd1 ={:f}'.format(xrep, yrep, xrepd, yrepd))
                         xrep += xrepd
                         yrep += yrepd
                         # xrep = 0
@@ -334,55 +334,67 @@ class Robot(threading.Thread):
     def is_belief_change(self):
         return False
 
-    def action_from_schedule(self, timerob, timehum, precedence, count, dtask):
-        tt = list(timerob)
-        ac = tt[count]
-        twait = 0
-        in_table_zone = False
-        if ac in self.task.remained_tasks:
-            if ac in self.task.human_error_tasks:
-                if self.task.task_to_do[ac][0] == 'rTray':
-                    dest = self.task.task_to_do[ac][0]
-                    in_table_zone = True
+    def action_from_schedule(self, timerob, available_actions, precedence, count):
+        if available_actions:
+            if len(available_actions) > 1:
+                if available_actions[0] in self.task.remained_tasks:
+                    available_actions.append(available_actions.pop(0))
+
+            ac = available_actions[0]
+            twait = 0
+            in_table_zone = False
+            if ac in self.task.remained_tasks:
+                if ac in self.task.human_error_tasks:
+                    if self.task.task_to_do[ac][0] == 'rTray':
+                        dest = self.task.task_to_do[ac][0]
+                        in_table_zone = True
+                    else:
+                        dest = 'W{}'.format(self.task.task_to_do[ac][0])
+                    act_info = {'type': 'error', 'start': 'T', 'destination': dest,
+                                'destination_num': self.task.task_to_do[ac][1],
+                                'object': self.task.task_to_do[ac][3], 'color': self.task.task_to_do[ac][2],
+                                'correcting_action': self.task.task_to_do[ac][4]}
+                    self.task.finished_tasks.append(ac)
                 else:
-                    dest = 'W{}'.format(self.task.task_to_do[ac][0])
-                act_info = {'type': 'error', 'start': 'T', 'destination': dest,
-                            'destination_num': self.task.task_to_do[ac][1],
-                            'object': self.task.task_to_do[ac][3], 'color': self.task.task_to_do[ac][2],
-                            'correcting_action': self.task.task_to_do[ac][4]}
-                self.task.finished_tasks.append(ac)
+                    col = self.task.task_to_do[ac][2]
+                    if ac in self.task.tasks_allocated_to_robot:
+                        ds = self.task.task_to_do[ac][1]
+                        ws = self.task.task_to_do[ac][0]
+                        self.task.tasks_allocated_to_robot.remove(ac)
+                        act_info = {'type': 'tray', 'start': 'T', 'destination': 'W{}'.format(ws),
+                                    'destination_num': ds,
+                                    'object': self.task.available_color_robot_tray[ws], 'wait_time': 0, 'color': col}
+                    elif ac in self.task.tasks_allocated_to_human:
+                        ds = self.task.task_to_do[ac][1]
+                        ws = self.task.task_to_do[ac][0]
+                        self.task.tasks_allocated_to_human.remove(ac)
+                        act_info = {'type': 'tray', 'start': 'T', 'destination': 'W{}'.format(ws),
+                                    'destination_num': ds,
+                                    'object': self.task.available_color_human_tray[ws], 'wait_time': 0, 'color': col}
+                    else:
+                        act_info = {'type': 'normal', 'start': 'T',
+                                    'destination': 'W{}'.format(self.task.task_to_do[ac][0]),
+                                    'destination_num': self.task.task_to_do[ac][1], 'color': col,
+                                    'object': self.task.available_color_table[col][-1], 'wait_time': twait}
+                    self.task.finished_tasks.append(ac)
             else:
-                col = self.task.task_to_do[ac][2]
-                if ac in self.task.tasks_allocated_to_robot:
-                    ds = self.task.task_to_do[ac][1]
-                    ws = self.task.task_to_do[ac][0]
-                    self.task.tasks_allocated_to_robot.remove(ac)
-                    act_info = {'type': 'tray', 'start': 'T', 'destination': 'W{}'.format(ws),
-                                'destination_num': ds,
-                                'object': self.task.available_color_robot_tray[ws], 'wait_time': 0, 'color': col}
-                else:
-                    act_info = {'type': 'normal', 'start': 'T',
-                                'destination': 'W{}'.format(self.task.task_to_do[ac][0]),
-                                'destination_num': self.task.task_to_do[ac][1], 'color': col,
-                                'object': self.task.available_color_table[col][-1], 'wait_time': twait}
-                self.task.finished_tasks.append(ac)
-        else:
-            for i in precedence:
-                if ac in precedence[i]:
-                    ds = self.task.task_to_do[i][0]
-                    col = self.task.task_to_do[i][2]
-                    self.task.tasks_allocated_to_human.append(i)
-                    self.all_allocated_tasks.append(i)
-                    self.cur_allocated_tasks = self.task.tasks_allocated_to_human[:]
-                    break
-            act_info = {'type': 'normal', 'start': 'T', 'destination': 'hTray',
-                        'destination_num': ds,
-                        'object': self.task.available_color_table[col][-1], 'color': col, 'wait_time': twait}
-            self.task.available_color_human_tray[ds] = self.task.available_color_table[col][-1]
-            in_table_zone = True
+                for i in precedence:
+                    if ac in precedence[i]:
+                        ds = self.task.task_to_do[i][0]
+                        col = self.task.task_to_do[i][2]
+                        self.task.tasks_allocated_to_human.append(i)
+                        self.all_allocated_tasks.append(i)
+                        self.cur_allocated_tasks = self.task.tasks_allocated_to_human[:]
+                        break
+                act_info = {'type': 'normal', 'start': 'T', 'destination': 'hTray',
+                            'destination_num': ds,
+                            'object': self.task.available_color_table[col][-1], 'color': col, 'wait_time': twait}
+                self.task.available_color_human_tray[ds] = self.task.available_color_table[col][-1]
+                in_table_zone = True
 
             # self.task.finished_tasks.append(i)
-        return act_info, in_table_zone
+            available_actions.pop(0)
+        return act_info, in_table_zone, available_actions
 
     def run(self):
         htmax = max(v[0] for v in list(self.task.t_task_all.values()))
@@ -444,7 +456,6 @@ class Robot(threading.Thread):
                     self.task.update_task_human_error(human_error=human_wrong_actions,
                                                       error_info=self.human.wrong_action_info)
 
-
             if next_robot_turn:
                 fselec = False
                 fschedule = False
@@ -455,28 +466,42 @@ class Robot(threading.Thread):
                 else:
                     fschedule = self.is_scheduling()
 
-
-
-            if fselec:
-                new_human_task, new_robot_task = self.planner.task_selection(task=self.task, hpenalty=punish_h,
-                                                                             rpenalty=punish_r,
-                                                                             error_penalty=punish_error)
+            # if fselec:
+            #     new_human_task, new_robot_task = self.planner.task_selection(task=self.task, hpenalty=punish_h,
+            #                                                                  rpenalty=punish_r,
+            #                                                                  error_penalty=punish_error)
             if fschedule:
-                htasks, rtasks, new_pr, new_pr_type2, ttasks = self.task.create_new_task(new_robot_tasks=new_robot_task,
-                                                                                         new_human_tasks=new_human_task)
-                rtiming, htiming, precedence = self.planner.task_scheduler(task_time=ttasks, human_tasks=htasks,
-                                                                           robot_tasks=rtasks, precedence=new_pr,
-                                                                           precedence_type2=new_pr_type2,
-                                                                           remaining_tasks=self.task.remained_tasks,
-                                                                           tasks_human_error=self.task.human_error_tasks,
-                                                                           tasks_human_error_type1=self.task.human_error_tasks_type1,
-                                                                           tasks_human_error_type2=self.task.human_error_tasks_type2,
-                                                                           )
+                is_solution = False
+                while not is_solution:
+                    if fselec:
+                        new_human_task, new_robot_task = self.planner.task_selection(task=self.task,
+                                                                                     hpenalty=punish_h,
+                                                                                     rpenalty=punish_r,
+                                                                                     error_penalty=punish_error,
+                                                                                     prev_sol={})
+
+                    htasks, rtasks, new_pr, new_pr_type2, ttasks = self.task.create_new_task(
+                        new_robot_tasks=new_robot_task,
+                        new_human_tasks=new_human_task)
+                    rtiming, htiming, precedence, is_solution = self.planner.task_scheduler(task_time=ttasks,
+                                                                                            human_tasks=htasks,
+                                                                                            robot_tasks=rtasks,
+                                                                                            precedence=new_pr,
+                                                                                            precedence_type2=new_pr_type2,
+                                                                                            remaining_tasks=self.task.remained_tasks,
+                                                                                            tasks_human_error=self.task.human_error_tasks,
+                                                                                            tasks_human_error_type1=self.task.human_error_tasks_type1,
+                                                                                            tasks_human_error_type2=self.task.human_error_tasks_type2,
+                                                                                            )
+                cur_step_actions = [i for i in rtiming if rtiming[i] == 0]
                 counter = 0
             else:
                 counter += 1
 
-            next_action, next_robot_turn = self.action_from_schedule(rtiming, htiming, precedence, counter, ttasks)
+            next_action, next_robot_turn, cur_step_actions = self.action_from_schedule(timerob=rtiming,
+                                                                                       available_actions=cur_step_actions,
+                                                                                       precedence=precedence,
+                                                                                       count=counter)
 
             # if next_action['destination'] == 'Tray':
             #     self.cur_human_tasks_done = self.human.done_tasks
