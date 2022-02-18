@@ -13,7 +13,7 @@ class Human(threading.Thread):
         self.task = task
         self.sim_env = sim_env
         self.done_tasks = []
-        self.human_wrong_actions = []
+        self.human_wrong_actions = {}
         self.wrong_color_object = {}
         self.p_conformity = p_conformity
         self.p_error = p_error
@@ -151,13 +151,14 @@ class Human(threading.Thread):
             act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
                         'destination_num': ds,
                         'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
+            self.task.available_color_human_tray[ws] = []
 
         elif not_allocated_tasks:
             next_action = random.choice(not_allocated_tasks)
             col = self.task.task_to_do[next_action][2]
             cond1 = (next_action in tasks_to_allocate) and (random.random() < 1.4 or self.p_conformity < 1.3)
             cond2 = len(not_allocated_tasks) > 1 or self.task.tasks_allocated_to_human
-            if cond1 and cond2 and False:
+            if cond1 and cond2:
                 ws = self.task.task_to_do[next_action][0]
                 if 0 < self.p_error:  # random.random()
                     colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
@@ -178,7 +179,7 @@ class Human(threading.Thread):
                 self.sim_env.table_blocks[col]['status'][ito] = 0
 
             else:
-                if 5 < self.p_error:  # random.random()
+                if random.random() < self.p_error:  # random.random()
                     colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
                     wrong_col = random.choice(colp)
                     col = wrong_col
@@ -202,11 +203,30 @@ class Human(threading.Thread):
             act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
                         'destination_num': ds,
                         'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
+            self.task.available_color_human_tray[ws] = []
         elif not not_allocated_tasks:
-            aaaaaaa = 1
+            pa = [i for i in self.human_wrong_actions if self.human_wrong_actions[i] == 'type2']
+            pa += self.task.tasks_allocated_to_robot
+            next_action = random.choice(pa)
+            if next_action in self.human_wrong_actions:
+                ds = self.task.task_to_do[next_action][1]
+                ws = self.task.task_to_do[next_action][0]
+                act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
+                            'destination_num': ds,
+                            'object': self.task.available_color_robot_tray[ws], 'wait_time': 0}
+                col = self.wrong_action_info[next_action]['color']
+                wrong_action_type1 = True
+            else:
+                self.task.tasks_allocated_to_human.remove(next_action)
+                # col = self.task.task_to_do[next_action][2]
+                ds = self.task.task_to_do[next_action][1]
+                ws = self.task.task_to_do[next_action][0]
+                act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
+                            'destination_num': ds,
+                            'object': self.task.available_color_robot_tray[ws], 'wait_time': 0}
 
         if wrong_action_type1 or wrong_action_type2:
-            self.human_wrong_actions.append(next_action)
+            self.human_wrong_actions[next_action] = 'type1' if wrong_action_type1 else 'type2'
             self.wrong_action_info[next_action] = {'color': col, 'object_num': act_info['object'],
                                                    'workspace': act_info['destination'],
                                                    'position_num': act_info['destination_num']}

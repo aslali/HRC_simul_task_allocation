@@ -297,7 +297,7 @@ class Robot(threading.Thread):
             if destination != 'rTray':
                 self.robot_move_apf(start, destination)
 
-            self.human.human_wrong_actions.remove(next_action['correcting_action'])
+            self.human.human_wrong_actions.pop(next_action['correcting_action'])
             self.robot_object_move_apf(start=destination, object_num=object_num, goal=start, color=next_action['color'])
             self.task.available_color_table[next_action['color']].append(object_num)
             ll = self.sim_env.table_blocks[next_action['color']]['status']
@@ -335,9 +335,11 @@ class Robot(threading.Thread):
         return False
 
     def action_from_schedule(self, timerob, available_actions, precedence, count):
+        act_info = None
         if available_actions:
             if len(available_actions) > 1:
-                if available_actions[0] in self.task.remained_tasks:
+                if available_actions[0] in self.task.remained_tasks or available_actions[
+                    0] in self.task.human_error_tasks_type2:
                     available_actions.append(available_actions.pop(0))
 
             ac = available_actions[0]
@@ -347,14 +349,18 @@ class Robot(threading.Thread):
                 if ac in self.task.human_error_tasks:
                     if self.task.task_to_do[ac][0] == 'rTray':
                         dest = self.task.task_to_do[ac][0]
+                        self.task.human_error_tasks_type2.remove(ac)
+                        self.task.available_color_robot_tray[self.task.task_to_do[ac][1]] = []
                         in_table_zone = True
                     else:
                         dest = 'W{}'.format(self.task.task_to_do[ac][0])
+                        self.task.human_error_tasks_type1.remove(ac)
                     act_info = {'type': 'error', 'start': 'T', 'destination': dest,
                                 'destination_num': self.task.task_to_do[ac][1],
                                 'object': self.task.task_to_do[ac][3], 'color': self.task.task_to_do[ac][2],
                                 'correcting_action': self.task.task_to_do[ac][4]}
                     self.task.finished_tasks.append(ac)
+                    self.task.human_error_tasks.remove(ac)
                 else:
                     col = self.task.task_to_do[ac][2]
                     if ac in self.task.tasks_allocated_to_robot:
@@ -364,6 +370,7 @@ class Robot(threading.Thread):
                         act_info = {'type': 'tray', 'start': 'T', 'destination': 'W{}'.format(ws),
                                     'destination_num': ds,
                                     'object': self.task.available_color_robot_tray[ws], 'wait_time': 0, 'color': col}
+                        self.task.available_color_robot_tray[ws] = []
                     elif ac in self.task.tasks_allocated_to_human:
                         ds = self.task.task_to_do[ac][1]
                         ws = self.task.task_to_do[ac][0]
@@ -394,6 +401,10 @@ class Robot(threading.Thread):
 
             # self.task.finished_tasks.append(i)
             available_actions.pop(0)
+            if act_info is None:
+                cccccccccc = 1
+        else:
+            cccccccccccccccccc = 1
         return act_info, in_table_zone, available_actions
 
     def run(self):
@@ -452,8 +463,10 @@ class Robot(threading.Thread):
                     self.human_accuracy_history.append(heaction)
 
                 # hum_new_errors = list(set(self.human.human_wrong_actions) - set(self.pre_human_wrong_actions))
+                human_wrong_actions = list(set(human_wrong_actions))
                 if human_wrong_actions:
                     self.task.update_task_human_error(human_error=human_wrong_actions,
+                                                      all_human_error=self.human.human_wrong_actions,
                                                       error_info=self.human.wrong_action_info)
 
             if next_robot_turn:
@@ -494,6 +507,8 @@ class Robot(threading.Thread):
                                                                                             tasks_human_error_type2=self.task.human_error_tasks_type2,
                                                                                             )
                 cur_step_actions = [i for i in rtiming if rtiming[i] == 0]
+                if not cur_step_actions:
+                    ccccccccccccc = 1
                 counter = 0
             else:
                 counter += 1
@@ -508,5 +523,5 @@ class Robot(threading.Thread):
 
             # self.robot_action('T', 'W1', 1, 1)
             self.pre_human_tasks_done = self.human.done_tasks[:]
-            self.pre_human_wrong_actions = self.human.human_wrong_actions[:]
+            self.pre_human_wrong_actions = list(self.human.human_wrong_actions.keys())
             self.robot_action(next_action)

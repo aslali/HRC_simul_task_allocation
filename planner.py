@@ -163,12 +163,13 @@ class Planner:
                         for i in task.remained_task_both),
                     sense=plp.LpConstraintGE, rhs=0, name="constraint_2"))}
         # mt = max(1, len(first_step_available_tasks) - 1)
-        if first_step_available_tasks:
-            opt_model += (plp.lpSum(x_vars[i] for i in first_step_available_tasks) <= len(first_step_available_tasks) - 1, 'sumb')
-        elif first_step_available_tasks_tray:
-            opt_model += (plp.lpSum(x_vars[i] for i in first_step_available_tasks_tray) <= len(first_step_available_tasks_tray) - 1, 'sumb')
-        else:
-            ccccc= 1
+        if not task.human_error_tasks_type1:
+            if first_step_available_tasks:
+                opt_model += (plp.lpSum(x_vars[i] for i in first_step_available_tasks) <= len(first_step_available_tasks) - 1, 'sumb')
+            elif first_step_available_tasks_tray:
+                opt_model += (plp.lpSum(x_vars[i] for i in first_step_available_tasks_tray) <= len(first_step_available_tasks_tray) - 1, 'sumb')
+            else:
+                ccccc= 1
         # yprev = [[plp.LpVariable(cat=plp.LpBinary, name='d{sol}_{1}'.format(sol, i)) for i in
         #        task.remained_task_both] for sol in prev_sol.keys()]
 
@@ -314,22 +315,26 @@ class Planner:
 
         rt = list(set(robot_tasks) - tasks_human_error)
 
-        rt = list(set(robot_tasks)-set(precedence_type2.keys()))
-        if tasks_human_error:
-            start_zero_alloc = {}
-            for k in precedence_type2.keys():
-                start_zero_alloc[k] = plp.LpConstraint(e=s_vars[k] - mlarge * b_vars[k],
-                                                       name='start_zero{}'.format(k), sense=-1,
-                                                       rhs=0)
-                opt_model.extend(start_zero_alloc[k].makeElasticSubProblem(penalty=100, proportionFreeBound=0.1))
-                # opt_model += (s_vars[k] <= mlarge * b_vars[k], 'start_zero{}'.format(k))
+        rt = list(set(robot_tasks)-set(precedence_type2.keys())-tasks_human_error_type2)
+        # if tasks_human_error_type2:
+        #     start_zero_alloc = {}
+        #     for k in precedence_type2.keys():
+        #         start_zero_alloc[k] = plp.LpConstraint(e=s_vars[k] - mlarge * b_vars[k],
+        #                                                name='start_zero{}'.format(k), sense=-1,
+        #                                                rhs=0)
+        #         opt_model.extend(start_zero_alloc[k].makeElasticSubProblem(penalty=100, proportionFreeBound=0.1))
+        #         # opt_model += (s_vars[k] <= mlarge * b_vars[k], 'start_zero{}'.format(k))
+        #
+        #     opt_model += (plp.lpSum(b_vars[i] for i in precedence_type2.keys()) == len(precedence_type2) - 1, 'sumb')
+        #
+        # else:
+        #     for k in rt:
+        #         opt_model += (s_vars[k] <= mlarge * b_vars[k], 'start_zero{}'.format(k))
+        #     opt_model += (plp.lpSum(b_vars[i] for i in rt) <= len(rt) - 1, 'sumb')
 
-            opt_model += (plp.lpSum(b_vars[i] for i in precedence_type2.keys()) == len(precedence_type2) - 1, 'sumb')
-
-        else:
-            for k in rt:
-                opt_model += (s_vars[k] <= mlarge * b_vars[k], 'start_zero{}'.format(k))
-            opt_model += (plp.lpSum(b_vars[i] for i in rt) <= len(rt) - 1, 'sumb')
+        for k in rt:
+            opt_model += (s_vars[k] <= mlarge * b_vars[k], 'start_zero{}'.format(k))
+        opt_model += (plp.lpSum(b_vars[i] for i in rt) <= len(rt) - 1, 'sumb')
 
         objective = z_var
         opt_model.sense = plp.LpMinimize
