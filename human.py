@@ -21,6 +21,7 @@ class Human(threading.Thread):
         self.speed = speed
         self.wrong_action_info = {}
         self.slopdist = {}
+        self.double_error = []
         self.slop_distance()
 
         # print(self.rob_slopdist)
@@ -120,14 +121,24 @@ class Human(threading.Thread):
 
     def get_available_tasks(self):
         human_available_task = []
+        human_available_task_error = []
+        human_available_wrong_tasks = []
+        type1_error = [i for i in self.human_wrong_actions if self.human_wrong_actions[i] == 'type1']
+        # type2_error = [i for i in self.human_wrong_actions if self.human_wrong_actions[i] == 'type2']
+        cor_wrong_actions = list(set(self.task.remained_tasks) - set(type1_error))
         for i in self.task.remained_tasks:
             robtas = i in self.task.remained_task_robot_only
-            preced_check = any(j in self.task.remained_tasks for j in self.task.task_precedence_dict[i])
+            preced_check_with_error = any(j in cor_wrong_actions for j in self.task.task_precedence_dict[i])
+            preced_check_no_error = any(j in self.task.remained_tasks for j in self.task.task_precedence_dict[i])
             rob_alloc = i in self.task.tasks_allocated_to_robot
             wrong_act = i in self.human_wrong_actions
 
-            if (not robtas) and (not preced_check) and (not rob_alloc) and (not wrong_act):
-                human_available_task.append(i)
+            if (not robtas) and (not preced_check_with_error) and (not rob_alloc) and (not wrong_act):
+                human_available_task_error.append(i)
+                if not preced_check_no_error:
+                    human_available_task.append(i)
+                else:
+                    human_available_wrong_tasks.append(i)
 
         not_allocated_tasks = list(set(human_available_task) - set(self.task.tasks_allocated_to_human))
         # not_allocated_tasks = list(set(not_allocated_tasks) - set(self.human_wrong_actions))
@@ -143,6 +154,8 @@ class Human(threading.Thread):
         wrong_action_type1 = False
         wrong_action_type2 = False
         alloc_robot = False
+        act_info = {}
+        next_action = None
         if self.task.tasks_allocated_to_human and pf < self.p_conformity:
             next_action = self.task.tasks_allocated_to_human[0]
             self.task.tasks_allocated_to_human.pop(0)
@@ -207,23 +220,27 @@ class Human(threading.Thread):
         elif not not_allocated_tasks:
             pa = [i for i in self.human_wrong_actions if self.human_wrong_actions[i] == 'type2']
             pa += self.task.tasks_allocated_to_robot
-            next_action = random.choice(pa)
-            if next_action in self.human_wrong_actions:
-                ds = self.task.task_to_do[next_action][1]
-                ws = self.task.task_to_do[next_action][0]
-                act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
-                            'destination_num': ds,
-                            'object': self.task.available_color_robot_tray[ws], 'wait_time': 0}
-                col = self.wrong_action_info[next_action]['color']
-                wrong_action_type1 = True
-            else:
-                self.task.tasks_allocated_to_human.remove(next_action)
-                # col = self.task.task_to_do[next_action][2]
-                ds = self.task.task_to_do[next_action][1]
-                ws = self.task.task_to_do[next_action][0]
-                act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
-                            'destination_num': ds,
-                            'object': self.task.available_color_robot_tray[ws], 'wait_time': 0}
+            if pa:
+                next_action = random.choice(pa)
+                if next_action in self.human_wrong_actions:
+                    ds = self.task.task_to_do[next_action][1]
+                    ws = self.task.task_to_do[next_action][0]
+                    act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
+                                'destination_num': ds,
+                                'object': self.task.available_color_robot_tray[ws], 'wait_time': 0}
+                    col = self.wrong_action_info[next_action]['color']
+                    wrong_action_type1 = True
+                    self.double_error.append(next_action)
+                else:
+                    self.task.tasks_allocated_to_human.remove(next_action)
+                    # col = self.task.task_to_do[next_action][2]
+                    ds = self.task.task_to_do[next_action][1]
+                    ws = self.task.task_to_do[next_action][0]
+                    act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
+                                'destination_num': ds,
+                                'object': self.task.available_color_robot_tray[ws], 'wait_time': 0}
+        else:
+            raise ValueError('Unconsidered Case')
 
         if wrong_action_type1 or wrong_action_type2:
             self.human_wrong_actions[next_action] = 'type1' if wrong_action_type1 else 'type2'
@@ -251,7 +268,8 @@ class Human(threading.Thread):
                 self.task.remove_finished_task_precedence()
                 action, action_num = self.action_selection()
                 # print(self.task.tasks_allocated_to_human)
-                self.human_action(action)
+                if action:
+                    self.human_action(action)
 
             # if action_num >= 0:
             #     self.task.finished_tasks.append(action_num)

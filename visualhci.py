@@ -54,7 +54,7 @@ class SHSCPackaging:
         # root.geometry(f'{screen_width}x{screen_height}')
         self.root.geometry(f'{self.field_width}x{self.field_height}')
         self.root.config(bg='#345')
-
+        # self.root.resizable(True, True)
         self.canvas = Canvas(
             self.root,
             height=self.field_height,

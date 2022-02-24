@@ -101,21 +101,24 @@ class Task:
             npred = list(set(self.task_precedence_dict[t]) - set(self.finished_tasks))
             self.task_precedence_dict[t] = npred
 
-    def update_task_human_error(self, human_error, all_human_error, error_info):
+    def update_task_human_error(self, human_error, double_error, error_info):
         human_error1 = human_error[:]
         while human_error1:
             lcheck = False
             tray_error = False
             ii = human_error1[0]
-            de = list(set(all_human_error)-set(human_error))
-            if ii in de:
+            # de = list(set(all_human_error.keys())-set(human_error))
+            if ii in double_error:
                 for tt in self.task_to_do:
-                    if self.task_to_do[tt][4] == ii:
+                    if len(self.task_to_do[tt]) > 4 and self.task_to_do[tt][4] == ii:
                         self.task_to_do[tt] = (int(error_info[ii]['workspace'][1]), error_info[ii]['position_num'],
                                                          error_info[ii]['color'], error_info[ii]['object_num'], ii)
                         self.human_error_tasks_type1.add(tt)
-                        self.human_error_tasks_type2.remove(tt)
+                        if tt in self.human_error_tasks_type2:
+                            self.human_error_tasks_type2.remove(tt)
+
                 human_error1.pop(0)
+                double_error.remove(ii)
             else:
                 new_task_num = int('{}{}{}'.format(self.n_task_total, self.n_task_total, ii))
                 if error_info[ii]['workspace'] == 'rTray':
@@ -155,7 +158,7 @@ class Task:
                         self.t_task_all[new_task_num] = (-1, 10)
                     self.find_remained_task()
                     human_error1.pop(0)
-
+        return double_error
     def create_new_task(self, new_robot_tasks=[], new_human_tasks=[], human_error=[]):
         # n_new_human = len(new_human_tasks)
         # n_new_robot = len(new_robot_tasks)

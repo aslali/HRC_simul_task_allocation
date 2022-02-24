@@ -235,13 +235,13 @@ class Planner:
             for i in range(nhtask):
                 for j in range(nhtask):
                     pname = 'yh{0}_{1}'.format(human_tasks[i], human_tasks[j])
-                    if pname in self.last_scheduling:
+                    if pname in self.last_scheduling and (self.last_scheduling[pname].value() is not None):
                         yh[i][j].setInitialValue(self.last_scheduling[pname].value())
 
             for i in range(nrtask):
                 for j in range(nrtask):
                     pname = 'yr{0}_{1}'.format(robot_tasks[i], robot_tasks[j])
-                    if pname in self.last_scheduling:
+                    if pname in self.last_scheduling and (self.last_scheduling[pname].value() is not None):
                         yr[i][j].setInitialValue(self.last_scheduling[pname].value())
 
         for i in all_task:
@@ -349,7 +349,7 @@ class Planner:
             pickle.dump([self.last_scheduling, human_tasks, robot_tasks], a_file)
             a_file.close()
         else:
-            opt_model.solve(plp.GUROBI_CMD(timeLimit=200, msg=False, warmStart=True, gapRel=0.00004))
+            opt_model.solve(plp.GUROBI_CMD(timeLimit=4, msg=False, warmStart=True, gapRel=0.004))
 
         is_solution = opt_model.status
         htiming = {}

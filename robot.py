@@ -338,8 +338,8 @@ class Robot(threading.Thread):
         act_info = None
         if available_actions:
             if len(available_actions) > 1:
-                if available_actions[0] in self.task.remained_tasks or available_actions[
-                    0] in self.task.human_error_tasks_type2:
+                if available_actions[0] not in self.task.tasks_allocated_to_human and available_actions[
+                    0] not in self.task.human_error_tasks_type2:
                     available_actions.append(available_actions.pop(0))
 
             ac = available_actions[0]
@@ -463,11 +463,21 @@ class Robot(threading.Thread):
                     self.human_accuracy_history.append(heaction)
 
                 # hum_new_errors = list(set(self.human.human_wrong_actions) - set(self.pre_human_wrong_actions))
-                human_wrong_actions = list(set(human_wrong_actions))
+
                 if human_wrong_actions:
-                    self.task.update_task_human_error(human_error=human_wrong_actions,
-                                                      all_human_error=self.human.human_wrong_actions,
+                    seen = set()
+                    dubl = []
+                    for x in human_wrong_actions:
+                        if x in seen:
+                            dubl.append(x)
+                        else:
+                            seen.add(x)
+                    self.human.double_error = list(set(self.human.double_error) - set(dubl))
+                    human_wrong_actions = list(set(human_wrong_actions))
+                    de = self.task.update_task_human_error(human_error=human_wrong_actions,
+                                                      double_error=self.human.double_error,
                                                       error_info=self.human.wrong_action_info)
+                    # self.human.double_error = de[:]
 
             if next_robot_turn:
                 fselec = False
