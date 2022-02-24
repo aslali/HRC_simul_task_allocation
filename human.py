@@ -145,10 +145,10 @@ class Human(threading.Thread):
 
         tasks_to_allocate = list(set(not_allocated_tasks) - set(self.task.tasks_allocated_to_robot))
 
-        return not_allocated_tasks, tasks_to_allocate
+        return not_allocated_tasks, tasks_to_allocate, human_available_wrong_tasks
 
     def action_selection(self):
-        not_allocated_tasks, tasks_to_allocate = self.get_available_tasks()
+        not_allocated_tasks, tasks_to_allocate, human_available_wrong_tasks = self.get_available_tasks()
 
         pf = 1  # random.random()
         wrong_action_type1 = False
@@ -156,6 +156,8 @@ class Human(threading.Thread):
         alloc_robot = False
         act_info = {}
         next_action = None
+        is_error = is random.random < p_error
+
         if self.task.tasks_allocated_to_human and pf < self.p_conformity:
             next_action = self.task.tasks_allocated_to_human[0]
             self.task.tasks_allocated_to_human.pop(0)
@@ -166,14 +168,15 @@ class Human(threading.Thread):
                         'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
             self.task.available_color_human_tray[ws] = []
 
-        elif not_allocated_tasks:
+        elif not_allocated_tasks or (is_error and human_available_wrong_tasks):
+                next_action = random.choice(not_allocated_tasks + human_available_wrong_tasks)
             next_action = random.choice(not_allocated_tasks)
             col = self.task.task_to_do[next_action][2]
             cond1 = (next_action in tasks_to_allocate) and (random.random() < 1.4 or self.p_conformity < 1.3)
             cond2 = len(not_allocated_tasks) > 1 or self.task.tasks_allocated_to_human
             if cond1 and cond2:
                 ws = self.task.task_to_do[next_action][0]
-                if 0 < self.p_error:  # random.random()
+                if 0 < self.p_error: is_error
                     colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
                     wrong_col = random.choice(colp)
                     col = wrong_col
