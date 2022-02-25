@@ -119,8 +119,10 @@ class Planner:
 
 
         first_step_available_tasks_tray = []
+        tt = list(set(task.remained_tasks) - set(task.human_error_tasks_type2))
         for i in task.remained_task_both:
-            preced_check = any(j in task.remained_tasks for j in task.task_precedence_dict[i])
+
+            preced_check = any(j in tt for j in task.task_precedence_dict[i])
             # wrong_act = i in self.human_wrong_actions
             if not preced_check:    # and (i not in task.tasks_allocated_to_human):
                 first_step_available_tasks_tray.append(i)
@@ -249,11 +251,16 @@ class Planner:
                 if j != i:
                     if i in precedence:
                         if j in precedence[i]:
-                            opt_model += (s_vars[i] - (s_vars[j] + task_time[j]) >= 0, "seq{0}_{1}".format(i, j))
+                            if j in tasks_human_error_type2:
+                                opt_model += (s_vars[i] - (s_vars[j] + 0) >= 0, "seq{0}_{1}".format(i, j))
+                            else:
+                                opt_model += (s_vars[i] - (s_vars[j] + task_time[j]) >= 0, "seq{0}_{1}".format(i, j))
                     elif i in precedence_type2:
                         if j in precedence_type2[i][0]:
-                            opt_model += (
-                                s_vars[i] - (s_vars[j] + precedence_type2[i][1]) >= 0, "seq{0}_{1}".format(i, j))
+                            if j in tasks_human_error_type2:
+                                opt_model += (s_vars[i] - (s_vars[j] + 0) >= 0, "seq{0}_{1}".format(i, j))   #precedence_type2[i][1]
+                            else:
+                                opt_model += (s_vars[i] - (s_vars[j] + precedence_type2[i][1]) >= 0, "seq{0}_{1}".format(i, j))
 
         comh = plp.combination(list(range(nhtask)), 2)
         for c1, c2 in comh:
@@ -419,7 +426,7 @@ class Planner:
         # plt.show()
         for i in range(ny):
             self.p_human_allocation = sum([a * b for a, b in zip(self.palpha, self.alpha_set)])
-        print(self.p_human_allocation)
+        # print(self.p_human_allocation)
 
     def human_error_update(self, human_action, action_history):
 

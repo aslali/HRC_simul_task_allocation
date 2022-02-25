@@ -47,23 +47,13 @@ for i in task_to_do.values():
     pattern_col[(i[0], i[1])] = col[i[2]]
 
 sim_env = visualhci.SHSCPackaging(pattern_col)
-human = human.Human(speed=200, task=task, p_conformity=0.7, p_error=0.7, sim_env=sim_env, time_step=time_step)
+human = human.Human(speed=200, task=task, p_conformity=0.7, p_error=0.99, sim_env=sim_env, time_step=time_step)
 robot = robot.Robot(speed=150, task=task, human=human, sim_env=sim_env, time_step=time_step)
 remained_tasks = task.n_task_total
 newAllocation = 1
 
 robot.start()
 human.start()
-# robot.join()
-# human.human_action('T', 'W3', 1, 1)
-# robot.robot_action('T', 'W2', 1, 1)
-#
-# task.finished_tasks = []
-# task.finished_tasks = [0, 1, 2]
-# task.find_remained_task()
-# task.remove_finished_task_precedence()
-# new_human_task, new_robot_task = planner.task_selection(task=task, hpenalty=punish_h, rpenalty=punish_r)
-# htasks, rtasks, new_pr, ttasks = task.create_new_task(new_robot_tasks=new_robot_task, new_human_tasks=new_human_task)
-# planner.task_scheduler(ttasks, htasks, rtasks, new_pr)
+
 
 sim_env.root.mainloop()

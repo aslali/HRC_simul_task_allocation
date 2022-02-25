@@ -22,6 +22,7 @@ class Human(threading.Thread):
         self.wrong_action_info = {}
         self.slopdist = {}
         self.double_error = []
+        self.human_actions_from_allocated = []
         self.slop_distance()
 
         # print(self.rob_slopdist)
@@ -156,7 +157,7 @@ class Human(threading.Thread):
         alloc_robot = False
         act_info = {}
         next_action = None
-        is_error = is random.random < p_error
+        is_error = random.random() < self.p_error   #random.random()
 
         if self.task.tasks_allocated_to_human and pf < self.p_conformity:
             next_action = self.task.tasks_allocated_to_human[0]
@@ -167,17 +168,24 @@ class Human(threading.Thread):
                         'destination_num': ds,
                         'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
             self.task.available_color_human_tray[ws] = []
+            self.human_actions_from_allocated.append(next_action)
 
         elif not_allocated_tasks or (is_error and human_available_wrong_tasks):
+            if is_error:
                 next_action = random.choice(not_allocated_tasks + human_available_wrong_tasks)
-            next_action = random.choice(not_allocated_tasks)
+            else:
+                next_action = random.choice(not_allocated_tasks)
             col = self.task.task_to_do[next_action][2]
             cond1 = (next_action in tasks_to_allocate) and (random.random() < 1.4 or self.p_conformity < 1.3)
             cond2 = len(not_allocated_tasks) > 1 or self.task.tasks_allocated_to_human
             if cond1 and cond2:
                 ws = self.task.task_to_do[next_action][0]
-                if 0 < self.p_error: is_error
-                    colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
+                if is_error:
+                    if next_action in human_available_wrong_tasks:
+                        colp = ['r', 'g', 'b', 'y']
+                    else:
+                        colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
+
                     wrong_col = random.choice(colp)
                     col = wrong_col
                     wrong_action_type2 = True
@@ -195,8 +203,11 @@ class Human(threading.Thread):
                 self.sim_env.table_blocks[col]['status'][ito] = 0
 
             else:
-                if random.random() < self.p_error:  # random.random()
-                    colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
+                if is_error:
+                    if next_action in human_available_wrong_tasks:
+                        colp = ['r', 'g', 'b', 'y']
+                    else:
+                        colp = list(set(['r', 'g', 'b', 'y']) - set(list(col)))
                     wrong_col = random.choice(colp)
                     col = wrong_col
                     wrong_action_type1 = True
@@ -220,6 +231,7 @@ class Human(threading.Thread):
                         'destination_num': ds,
                         'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
             self.task.available_color_human_tray[ws] = []
+            self.human_actions_from_allocated.append(next_action)
         elif not not_allocated_tasks:
             pa = [i for i in self.human_wrong_actions if self.human_wrong_actions[i] == 'type2']
             pa += self.task.tasks_allocated_to_robot
@@ -270,7 +282,7 @@ class Human(threading.Thread):
                 self.task.find_remained_task()
                 self.task.remove_finished_task_precedence()
                 action, action_num = self.action_selection()
-                # print(self.task.tasks_allocated_to_human)
+                # print(action, 'num: ', action_num)
                 if action:
                     self.human_action(action)
 
