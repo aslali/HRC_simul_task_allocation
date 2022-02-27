@@ -8,6 +8,7 @@ import visualhci
 import tasks
 import human
 import robot
+import measure
 
 # if __name__ == '__main__':
 time_step = 0.064
@@ -47,8 +48,9 @@ for i in task_to_do.values():
     pattern_col[(i[0], i[1])] = col[i[2]]
 
 sim_env = visualhci.SHSCPackaging(pattern_col)
-human = human.Human(speed=200, task=task, p_conformity=0.7, p_error=0.99, sim_env=sim_env, time_step=time_step)
-robot = robot.Robot(speed=150, task=task, human=human, sim_env=sim_env, time_step=time_step)
+measure = measure.Measure()
+human = human.Human(speed=200, task=task, p_conformity=0.7, p_error=0.99, sim_env=sim_env, time_step=time_step, measure=measure)
+robot = robot.Robot(speed=150, task=task, human=human, sim_env=sim_env, time_step=time_step, measure=measure)
 remained_tasks = task.n_task_total
 newAllocation = 1
 

@@ -9,7 +9,7 @@ import copy
 class Robot(threading.Thread):
     speed = 1.0
 
-    def __init__(self, task, speed, human, sim_env, time_step):
+    def __init__(self, task, speed, human, sim_env, time_step, measure):
         threading.Thread.__init__(self)
 
         self.p_human_allocation = 0.8
@@ -35,6 +35,7 @@ class Robot(threading.Thread):
         self.tasks_required_time()
         self.save_init_sol = False
         self.safe_dist_hr = 180
+        self.measure = measure
 
         # print(self.rob_slopdist)
 
@@ -426,6 +427,7 @@ class Robot(threading.Thread):
         new_human_task = None
         next_robot_turn = False
         while len(self.task.remained_task_both) + len(self.task.remained_task_robot_only) > 0:
+            start_time = self.measure.start()
             self.task.find_remained_task()
             self.task.remove_finished_task_precedence()
 
@@ -541,3 +543,4 @@ class Robot(threading.Thread):
             self.pre_human_tasks_done = self.human.done_tasks[:]
             self.pre_human_wrong_actions = list(self.human.human_wrong_actions.keys())
             self.robot_action(next_action)
+            self.measure.action_end(start_time=start_time, agent='robot')

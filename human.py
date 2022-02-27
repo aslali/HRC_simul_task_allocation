@@ -7,7 +7,7 @@ import random
 class Human(threading.Thread):
     speed = 1.0
 
-    def __init__(self, task, speed, sim_env, time_step, p_conformity=1, p_error=0, ):
+    def __init__(self, task, speed, sim_env, time_step, measure, p_conformity=1, p_error=0 ):
         threading.Thread.__init__(self)
         self.time_step = time_step
         self.task = task
