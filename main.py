@@ -1,29 +1,17 @@
-# This is a sample Python script.
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-import numpy as np
 import visualhci
 import tasks
 import human
 import robot
 import measure
 
-# if __name__ == '__main__':
 time_step = 0.064
 
 task_only_human = []
 task_only_robot = []
 task_both = list(range(20))
-# t_only_human = []
-# t_only_robot = []
-# t_both_human = [10, 10, 10, 10, 10,
-#                 20, 20, 20, 20, 20,
-#                 20, 20, 20, 20, 20,
-#                 10, 10, 10, 10, 10]
 
-# t_both_robot = [2 * x for x in t_both_human]
 
 task_precedence_dict = {0: [], 1: [0], 2: [1], 3: [2], 4: [3],
                         5: [], 6: [5], 7: [6], 8: [7], 9: [8],
@@ -37,8 +25,7 @@ task_to_do = {0: (1, 1, 'y'), 1: (1, 2, 'y'), 2: (1, 3, 'y'), 3: (1, 4, 'y'), 4:
 
 task = tasks.Task(task_only_human=task_only_human, task_only_robot=task_only_robot, task_both=task_both,
                   task_to_do=task_to_do, task_precedence_dict=task_precedence_dict)
-# punish_h = 1.5 * (max(t_both_human) + max(t_both_robot))
-# punish_r = 1.5 * (max(t_both_human) + max(t_both_robot))
+
 
 pattern_col = {}
 col1 = ['#00a933', '#ffff00', '#2a6099', '#ff0000']

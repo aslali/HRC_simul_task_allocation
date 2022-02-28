@@ -75,34 +75,34 @@ class Robot(threading.Thread):
     def action_selection(self):
         pass
 
-    def robot_move(self, start, goal):
-        s = np.array(self.rpoints[start])
-        g = np.array(self.rpoints[goal])
-        name = start + goal if start + goal in self.rob_slopdist else goal + start
-        t = round(self.rob_slopdist[name][0] / self.speed)
-        # print(t)
-        x = np.linspace(s[0], g[0], round(1 / self.time_step) * t)
-        y = self.rob_slopdist[name][1] * (x - s[0]) + s[1]
-        xcur = s[0]
-        count = 1
-        if not (self.sim_env.human_pos[0] < self.sim_env.table_h + 400) or not (xcur < self.sim_env.table_h + 400) \
-                or not (xcur > self.sim_env.human_pos[0]):
-
-            while abs(xcur - g[0]) > 0.0:
-                xcur = x[count]
-                ycur = y[count]
-                self.sim_env.move_human_robot([xcur, ycur], 'robot')
-                time.sleep(self.time_step)
-                count += 1
+    # def robot_move(self, start, goal):
+    #     s = np.array(self.rpoints[start])
+    #     g = np.array(self.rpoints[goal])
+    #     name = start + goal if start + goal in self.rob_slopdist else goal + start
+    #     t = round(self.rob_slopdist[name][0] / self.speed)
+    #     # print(t)
+    #     x = np.linspace(s[0], g[0], round(1 / self.time_step) * t)
+    #     y = self.rob_slopdist[name][1] * (x - s[0]) + s[1]
+    #     xcur = s[0]
+    #     count = 1
+    #     if not (self.sim_env.human_pos[0] < self.sim_env.table_h + 400) or not (xcur < self.sim_env.table_h + 400) \
+    #             or not (xcur > self.sim_env.human_pos[0]):
+    #
+    #         while abs(xcur - g[0]) > 0.0:
+    #             xcur = x[count]
+    #             ycur = y[count]
+    #             self.sim_env.move_human_robot([xcur, ycur], 'robot')
+    #             time.sleep(self.time_step)
+    #             count += 1
 
     def robot_move_apf(self, start, goal):
+        travel_dist = 0
         s = np.array(self.rpoints[start])
         g = np.array(self.rpoints[goal])
         name = start + goal if start + goal in self.rob_slopdist else goal + start
         t = round(self.rob_slopdist[name][0] / self.speed)
-        # print(t)
-        x = np.linspace(s[0], g[0], round(1 / self.time_step) * t)
-        y = self.rob_slopdist[name][1] * (x - s[0]) + s[1]
+        # x = np.linspace(s[0], g[0], round(1 / self.time_step) * t)
+        # y = self.rob_slopdist[name][1] * (x - s[0]) + s[1]
         xcur = s[0]
         ycur = s[1]
         hum_pre_pos_x = None
@@ -144,14 +144,8 @@ class Robot(threading.Thread):
                         dbeta = math.atan2(ddyrep, ddxrep)
                         xrepd = cd1 * cd2 * math.cos(dbeta)
                         yrepd = cd1 * cd2 * math.sin(dbeta)
-                        # print('xrep = {:f}, yrep = {:f}, xrepd = {:f}, yrepd ={:f}'.format(xrep, yrep, xrepd, yrepd))
                         xrep += xrepd
                         yrep += yrepd
-
-                        # xrep = 0
-                        # yrep = 0
-                        # xatt = 0
-                        # yatt = 0
 
                 else:
                     xrep = 0
@@ -159,44 +153,45 @@ class Robot(threading.Thread):
 
                 speedx = np.sign(xatt + xrep) * min(250, abs(xatt + xrep) * self.speed)
                 speedy = np.sign(yatt + yrep) * min(250, abs(yatt + yrep) * self.speed)
-                xcur += speedx * self.time_step
-                ycur += speedy * self.time_step
-
-                # xcur += (xatt + xrep) * self.speed * self.time_step
-                # ycur += (yatt + yrep) * self.speed * self.time_step
+                dx = speedx * self.time_step
+                dy = speedy * self.time_step
+                xcur += dx
+                ycur += dy
+                travel_dist += math.sqrt(dx ** 2 + dy ** 2)
                 hum_pre_pos_x = self.sim_env.human_pos[0]
                 hum_pre_pos_y = self.sim_env.human_pos[1]
                 self.sim_env.move_human_robot([xcur, ycur], 'robot')
                 time.sleep(self.time_step)
-
-    def robot_object_move(self, start, object_num, goal, goal_num):
-        if goal == 'hTray':
-            self.sim_env.move_object(object_num, destination_name=goal, destination_num=goal_num)
-            self.sim_env.root.update_idletasks()
-        else:
-            s = np.array(self.rpoints[start])
-            g = np.array(self.rpoints[goal])
-            name = start + goal if start + goal in self.rob_slopdist else goal + start
-            t = round(self.rob_slopdist[name][0] / self.speed)
-            x = np.linspace(s[0], g[0], round(1 / self.time_step) * t)
-            y = self.rob_slopdist[name][1] * (x - s[0]) + s[1]
-            xcur = s[0]
-            ycur = s[1]
-            self.sim_env.move_object(object_num, goal=[xcur, ycur])
-            self.sim_env.root.update_idletasks()
-
-            count = 1
-            while abs(xcur - g[0]) > 0.0:
-                xcur = x[count]
-                ycur = y[count]
-                self.sim_env.move_human_robot([xcur, ycur], 'robot')
-                self.sim_env.move_object(object_num, goal=[xcur, ycur])
-                time.sleep(self.time_step)
-                count += 1
-            self.sim_env.move_object(object_num, destination_name=goal, destination_num=goal_num)
-            self.sim_env.root.update_idletasks()
+        return travel_dist
+    # def robot_object_move(self, start, object_num, goal, goal_num):
+    #     if goal == 'hTray':
+    #         self.sim_env.move_object(object_num, destination_name=goal, destination_num=goal_num)
+    #         self.sim_env.root.update_idletasks()
+    #     else:
+    #         s = np.array(self.rpoints[start])
+    #         g = np.array(self.rpoints[goal])
+    #         name = start + goal if start + goal in self.rob_slopdist else goal + start
+    #         t = round(self.rob_slopdist[name][0] / self.speed)
+    #         x = np.linspace(s[0], g[0], round(1 / self.time_step) * t)
+    #         y = self.rob_slopdist[name][1] * (x - s[0]) + s[1]
+    #         xcur = s[0]
+    #         ycur = s[1]
+    #         self.sim_env.move_object(object_num, goal=[xcur, ycur])
+    #         self.sim_env.root.update_idletasks()
+    #
+    #         count = 1
+    #         while abs(xcur - g[0]) > 0.0:
+    #             xcur = x[count]
+    #             ycur = y[count]
+    #             self.sim_env.move_human_robot([xcur, ycur], 'robot')
+    #             self.sim_env.move_object(object_num, goal=[xcur, ycur])
+    #             time.sleep(self.time_step)
+    #             count += 1
+    #         self.sim_env.move_object(object_num, destination_name=goal, destination_num=goal_num)
+    #         self.sim_env.root.update_idletasks()
 
     def robot_object_move_apf(self, start, object_num, goal, goal_num=None, color=None):
+        travel_dist = 0
         if goal == 'hTray':
             self.sim_env.move_object(object_num=object_num, destination_name=goal, destination_num=goal_num)
             self.sim_env.root.update_idletasks()
@@ -255,23 +250,19 @@ class Robot(threading.Thread):
                         dbeta = math.atan2(ddyrep, ddxrep)
                         xrepd = cd1 * cd2 * math.cos(dbeta)
                         yrepd = cd1 * cd2 * math.sin(dbeta)
-                        # print(
-                        #     'xrep1 = {:f}, yrep1 = {:f}, xrepd1 = {:f}, yrepd1 ={:f}'.format(xrep, yrep, xrepd, yrepd))
                         xrep += xrepd
                         yrep += yrepd
-                        # xrep = 0
-                        # yrep = 0
-                        # xatt = 0
-                        # yatt = 0
-
                 else:
                     xrep = 0
                     yrep = 0
 
                 speedx = np.sign(xatt + xrep) * min(250, abs(xatt + xrep) * self.speed)
                 speedy = np.sign(yatt + yrep) * min(250, abs(yatt + yrep) * self.speed)
-                xcur += speedx * self.time_step
-                ycur += speedy * self.time_step
+                dx = speedx * self.time_step
+                dy = speedy * self.time_step
+                xcur += dx
+                ycur += dy
+                travel_dist += math.sqrt(dx**2 + dy**2)
                 hum_pre_pos_x = self.sim_env.human_pos[0]
                 hum_pre_pos_y = self.sim_env.human_pos[1]
 
@@ -287,35 +278,40 @@ class Robot(threading.Thread):
             else:
                 self.sim_env.move_object(object_num, destination_name=goal, destination_num=goal_num)
             self.sim_env.root.update_idletasks()
+        return travel_dist
 
     def robot_action(self, next_action):
+        trd1 = 0
+        trd2 = 0
         start = next_action['start']
         destination = next_action['destination']
         destination_num = next_action['destination_num']
         object_num = next_action['object']
 
-        if next_action['type'] == 'error':
+        if next_action['type'] == 'error1' or next_action['type'] == 'error2':
             self.human.human_wrong_actions.pop(next_action['correcting_action'])
-            if destination != 'rTray':
-                self.robot_move_apf(start, destination)
+            if next_action['type'] == 'error1':
+                trd2 = self.robot_move_apf(start, destination)
 
-            self.robot_object_move_apf(start=destination, object_num=object_num, goal=start, color=next_action['color'])
+            trd1 = self.robot_object_move_apf(start=destination, object_num=object_num, goal=start, color=next_action['color'])
             self.task.available_color_table[next_action['color']].append(object_num)
             ll = self.sim_env.table_blocks[next_action['color']]['status']
             ito = ll.index(0)
             self.sim_env.table_blocks[next_action['color']]['status'][ito] = 1
-        elif next_action['type'] == 'tray':
-            self.robot_object_move_apf(start=start, object_num=object_num, goal=destination, goal_num=destination_num)
-            self.robot_move_apf(destination, start)
+        elif next_action['type'] == 'tray1' or next_action['type'] == 'tray2':
+            trd1 = self.robot_object_move_apf(start=start, object_num=object_num, goal=destination, goal_num=destination_num)
+            trd2 = self.robot_move_apf(destination, start)
         else:
             self.task.available_color_table[next_action['color']].pop()
             ll = self.sim_env.table_blocks[next_action['color']]['status']
             ito = len(ll) - 1 - ll[::-1].index(1)
             self.sim_env.table_blocks[next_action['color']]['status'][ito] = 0
-            self.robot_object_move_apf(start=start, object_num=object_num, goal=destination, goal_num=destination_num)
+            trd1 = self.robot_object_move_apf(start=start, object_num=object_num, goal=destination, goal_num=destination_num)
 
-            if destination != 'hTray':
-                self.robot_move_apf(destination, start)
+            if next_action['type'] == 'normal':
+                trd2 = self.robot_move_apf(destination, start)
+
+        return trd1+trd2
 
     def is_task_selection(self, new_rob_task, new_hum_task):
         istasksel = True
@@ -338,10 +334,6 @@ class Robot(threading.Thread):
     def action_from_schedule(self, timerob, available_actions, precedence, count):
         act_info = None
         if available_actions:
-            #     if len(available_actions) > 1:
-            #         if available_actions[0] not in self.task.tasks_allocated_to_human and available_actions[
-            #             0] not in self.task.human_error_tasks_type2:
-            #             available_actions.append(available_actions.pop(0))
 
             ac = available_actions[0]
             twait = 0
@@ -353,10 +345,12 @@ class Robot(threading.Thread):
                         self.task.human_error_tasks_type2.remove(ac)
                         self.task.available_color_robot_tray[self.task.task_to_do[ac][1]] = []
                         in_table_zone = True
+                        etype = 'error2'
                     else:
                         dest = 'W{}'.format(self.task.task_to_do[ac][0])
                         self.task.human_error_tasks_type1.remove(ac)
-                    act_info = {'type': 'error', 'start': 'T', 'destination': dest,
+                        etype = 'error1'
+                    act_info = {'type': etype, 'start': 'T', 'destination': dest,
                                 'destination_num': self.task.task_to_do[ac][1],
                                 'object': self.task.task_to_do[ac][3], 'color': self.task.task_to_do[ac][2],
                                 'correcting_action': self.task.task_to_do[ac][4]}
@@ -368,7 +362,7 @@ class Robot(threading.Thread):
                         ds = self.task.task_to_do[ac][1]
                         ws = self.task.task_to_do[ac][0]
                         self.task.tasks_allocated_to_robot.remove(ac)
-                        act_info = {'type': 'tray', 'start': 'T', 'destination': 'W{}'.format(ws),
+                        act_info = {'type': 'tray1', 'start': 'T', 'destination': 'W{}'.format(ws),
                                     'destination_num': ds,
                                     'object': self.task.available_color_robot_tray[ws], 'wait_time': 0, 'color': col}
                         self.task.available_color_robot_tray[ws] = []
@@ -376,7 +370,7 @@ class Robot(threading.Thread):
                         ds = self.task.task_to_do[ac][1]
                         ws = self.task.task_to_do[ac][0]
                         self.task.tasks_allocated_to_human.remove(ac)
-                        act_info = {'type': 'tray', 'start': 'T', 'destination': 'W{}'.format(ws),
+                        act_info = {'type': 'tray2', 'start': 'T', 'destination': 'W{}'.format(ws),
                                     'destination_num': ds,
                                     'object': self.task.available_color_human_tray[ws], 'wait_time': 0, 'color': col}
                     else:
@@ -394,7 +388,7 @@ class Robot(threading.Thread):
                         self.all_allocated_tasks.append(i)
                         self.cur_allocated_tasks = self.task.tasks_allocated_to_human[:]
                         break
-                act_info = {'type': 'normal', 'start': 'T', 'destination': 'hTray',
+                act_info = {'type': 'allocate', 'start': 'T', 'destination': 'hTray',
                             'destination_num': ds,
                             'object': self.task.available_color_table[col][-1], 'color': col, 'wait_time': twait}
                 self.task.available_color_human_tray[ds] = self.task.available_color_table[col][-1]
@@ -402,8 +396,6 @@ class Robot(threading.Thread):
 
             # self.task.finished_tasks.append(i)
             available_actions.pop(0)
-            if act_info is None:
-                cccccccccc = 1
         else:
             cccccccccccccccccc = 1
         return act_info, in_table_zone, available_actions
@@ -427,7 +419,7 @@ class Robot(threading.Thread):
         new_human_task = None
         next_robot_turn = False
         while len(self.task.remained_task_both) + len(self.task.remained_task_robot_only) > 0:
-            start_time = self.measure.start()
+            start_time_total = self.measure.start_time()
             self.task.find_remained_task()
             self.task.remove_finished_task_precedence()
 
@@ -466,7 +458,8 @@ class Robot(threading.Thread):
                                                         action_history=self.human_accuracy_history)
                         self.human_accuracy_history.append(heaction)
 
-                # hum_new_errors = list(set(self.human.human_wrong_actions) - set(self.pre_human_wrong_actions))
+                self.measure.human_measures(start_time=start_time_total, p_error=self.planner.p_human_error,
+                                            p_following=self.planner.p_human_allocation)
                 if human_wrong_actions:
                     seen = set()
                     dubl = []
@@ -535,12 +528,9 @@ class Robot(threading.Thread):
                                                                                         available_actions=available_actions,
                                                                                         precedence=precedence,
                                                                                         count=counter)
-
-            # if next_action['destination'] == 'Tray':
-            #     self.cur_human_tasks_done = self.human.done_tasks
-
-            # self.robot_action('T', 'W1', 1, 1)
             self.pre_human_tasks_done = self.human.done_tasks[:]
             self.pre_human_wrong_actions = list(self.human.human_wrong_actions.keys())
-            self.robot_action(next_action)
-            self.measure.action_end(start_time=start_time, agent='robot')
+            start_time_action = self.measure.start_time()
+            travel_dist = self.robot_action(next_action)
+            self.measure.action_end(start_time_total=start_time_total, start_time_action=start_time_action,
+                                    agent='robot', travel_distance=travel_dist, action_type=next_action['type'])

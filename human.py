@@ -24,6 +24,7 @@ class Human(threading.Thread):
         self.double_error = []
         self.human_actions_from_allocated = []
         self.slop_distance()
+        self.measure = measure
 
         # print(self.rob_slopdist)
 
@@ -49,6 +50,8 @@ class Human(threading.Thread):
         y = self.slopdist[name][1] * (x - s[0]) + s[1]
         xcur = s[0]
         count = 1
+        timer_started = False
+        t1 = 0
         while abs(xcur - g[0]) > 0.0:
             if not (self.sim_env.robot_pos[0] < self.sim_env.table_h + 100) or not (xcur < self.sim_env.table_h + 100) \
                     or not (xcur > self.sim_env.robot_pos[0]):
@@ -57,6 +60,16 @@ class Human(threading.Thread):
                 self.sim_env.move_human_robot([xcur, ycur], 'human')
                 time.sleep(self.time_step)
                 count += 1
+            elif not timer_started:
+                t1 = self.measure.start_time()
+                timer_started = True
+
+        if t1 == 0:
+            t2 = 0
+        else:
+            t2 = self.measure.start_time()
+
+        return t2 - t1, self.slopdist[name][0]
 
     def human_move_by_position(self, start, goal):
         m = (start[1] - goal[1]) / (start[0] - goal[0])
@@ -68,6 +81,8 @@ class Human(threading.Thread):
         y = m * (x - start[0]) + start[1]
         xcur = start[0]
         count = 1
+        timer_started = False
+        t1 = 0
         while abs(xcur - goal[0]) > 0.0:
             if not (self.sim_env.robot_pos[0] < self.sim_env.table_h + 100) or not (xcur < self.sim_env.table_h + 100):
                 xcur = x[count]
@@ -75,9 +90,19 @@ class Human(threading.Thread):
                 self.sim_env.move_human_robot([xcur, ycur], 'human')
                 time.sleep(self.time_step)
                 count += 1
+            elif not timer_started:
+                t1 = self.measure.start_time()
+                timer_started = True
+
+        if t1 == 0:
+            t2 = 0
+        else:
+            t2 = self.measure.start_time()
+
+        return t2-t1, d
 
     def human_object_move(self, start, object_num, goal, goal_num):
-
+        d1 = 0
         if goal == 'rTray':
             self.sim_env.move_object(object_num, destination_name=goal, destination_num=goal_num)
             self.sim_env.root.update_idletasks()
@@ -85,6 +110,7 @@ class Human(threading.Thread):
             s = np.array(self.hpoints[start])
             g = np.array(self.hpoints[goal])
             name = start + goal if start + goal in self.slopdist else goal + start
+            d1 = self.slopdist[name][0]
             t = round(self.slopdist[name][0] / self.speed)
             x = np.linspace(s[0], g[0], round(1 / self.time_step) * t)
             y = self.slopdist[name][1] * (x - s[0]) + s[1]
@@ -104,8 +130,11 @@ class Human(threading.Thread):
             self.sim_env.move_object(object_num, destination_name=goal, destination_num=goal_num)
             self.sim_env.root.update_idletasks()
 
-    def human_action(self, next_action):
+        return d1
 
+    def human_action(self, next_action):
+        idle_time = 0
+        d2 = 0
         start = next_action['start']
         destination = next_action['destination']
         destination_num = next_action['destination_num']
@@ -115,10 +144,11 @@ class Human(threading.Thread):
         #     time.sleep(wait_time)
         # else:
 
-        self.human_object_move(start, object_num, destination, destination_num)
+        d1 = self.human_object_move(start, object_num, destination, destination_num)
 
         if destination != 'rTray':
-            self.human_move(destination, start)
+            idle_time, d2 = self.human_move(destination, start)
+        return idle_time, d1+d2
 
     def get_available_tasks(self):
         human_available_task = []
@@ -275,8 +305,11 @@ class Human(threading.Thread):
         # self.human_action('T', 'W3',2,2)
         first_move = True
         while len(self.task.remained_task_both) + len(self.task.remained_task_robot_only) > 0:
+            idle_time = 0
+            travel_dist = 0
+            start_time = self.measure.start_time()
             if first_move:
-                self.human_move_by_position(self.sim_env.human_pos, self.sim_env.human_pos_table)
+                idle_time, travel_dist = self.human_move_by_position(self.sim_env.human_pos, self.sim_env.human_pos_table)
                 first_move = False
             else:
                 self.task.find_remained_task()
@@ -284,10 +317,6 @@ class Human(threading.Thread):
                 action, action_num = self.action_selection()
                 # print(action, 'num: ', action_num)
                 if action:
-                    self.human_action(action)
+                    idle_time, travel_dist = self.human_action(action)
+            self.measure.action_end(start_time_total=start_time, agent='human', idle_time=idle_time, travel_distance=travel_dist)
 
-            # if action_num >= 0:
-            #     self.task.finished_tasks.append(action_num)
-            #     self.done_tasks.append(action_num)
-            #     self.task.find_remained_task()
-            #     self.task.remove_finished_task_precedence()
