@@ -336,7 +336,6 @@ class Robot(threading.Thread):
         if available_actions:
 
             ac = available_actions[0]
-            twait = 0
             in_table_zone = False
             if ac in self.task.remained_tasks:
                 if ac in self.task.human_error_tasks:
@@ -353,7 +352,7 @@ class Robot(threading.Thread):
                     act_info = {'type': etype, 'start': 'T', 'destination': dest,
                                 'destination_num': self.task.task_to_do[ac][1],
                                 'object': self.task.task_to_do[ac][3], 'color': self.task.task_to_do[ac][2],
-                                'correcting_action': self.task.task_to_do[ac][4]}
+                                'correcting_action': self.task.task_to_do[ac][4], 'action_number': self.task.task_to_do[ac][4]}
                     self.task.finished_tasks.append(ac)
                     self.task.human_error_tasks.remove(ac)
                 else:
@@ -364,7 +363,7 @@ class Robot(threading.Thread):
                         self.task.tasks_allocated_to_robot.remove(ac)
                         act_info = {'type': 'tray1', 'start': 'T', 'destination': 'W{}'.format(ws),
                                     'destination_num': ds,
-                                    'object': self.task.available_color_robot_tray[ws], 'wait_time': 0, 'color': col}
+                                    'object': self.task.available_color_robot_tray[ws], 'action_number': ac, 'color': col}
                         self.task.available_color_robot_tray[ws] = []
                     elif ac in self.task.tasks_allocated_to_human:
                         ds = self.task.task_to_do[ac][1]
@@ -372,12 +371,12 @@ class Robot(threading.Thread):
                         self.task.tasks_allocated_to_human.remove(ac)
                         act_info = {'type': 'tray2', 'start': 'T', 'destination': 'W{}'.format(ws),
                                     'destination_num': ds,
-                                    'object': self.task.available_color_human_tray[ws], 'wait_time': 0, 'color': col}
+                                    'object': self.task.available_color_human_tray[ws], 'action_number': ac, 'color': col}
                     else:
                         act_info = {'type': 'normal', 'start': 'T',
                                     'destination': 'W{}'.format(self.task.task_to_do[ac][0]),
                                     'destination_num': self.task.task_to_do[ac][1], 'color': col,
-                                    'object': self.task.available_color_table[col][-1], 'wait_time': twait}
+                                    'object': self.task.available_color_table[col][-1], 'action_number': ac}
                     self.task.finished_tasks.append(ac)
             else:
                 for i in precedence:
@@ -390,7 +389,7 @@ class Robot(threading.Thread):
                         break
                 act_info = {'type': 'allocate', 'start': 'T', 'destination': 'hTray',
                             'destination_num': ds,
-                            'object': self.task.available_color_table[col][-1], 'color': col, 'wait_time': twait}
+                            'object': self.task.available_color_table[col][-1], 'color': col, 'action_number': i}
                 self.task.available_color_human_tray[ds] = self.task.available_color_table[col][-1]
                 in_table_zone = True
 
@@ -419,12 +418,14 @@ class Robot(threading.Thread):
         new_human_task = None
         next_robot_turn = False
         while len(self.task.remained_task_both) + len(self.task.remained_task_robot_only) > 0:
+            print(self.task.remained_task_both)
             start_time_total = self.measure.start_time()
             self.task.find_remained_task()
             self.task.remove_finished_task_precedence()
 
             hum_new_actions = []
             pre_tasks = self.pre_human_tasks_done[:]
+            self.human.done_tasks = list(filter(None, self.human.done_tasks))
             for i in self.human.done_tasks:
                 if i in pre_tasks:
                     pre_tasks.remove(i)
@@ -533,4 +534,5 @@ class Robot(threading.Thread):
             start_time_action = self.measure.start_time()
             travel_dist = self.robot_action(next_action)
             self.measure.action_end(start_time_total=start_time_total, start_time_action=start_time_action,
-                                    agent='robot', travel_distance=travel_dist, action_type=next_action['type'])
+                                    agent='robot', travel_distance=travel_dist, action_type=next_action['type'],
+                                    action_number=next_action['action_number'])

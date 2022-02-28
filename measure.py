@@ -18,7 +18,8 @@ class Measure:
         tic = time.perf_counter()
         return tic
 
-    def action_end(self, start_time_total, agent, start_time_action=None, idle_time=None, travel_distance=None, action_type=None):
+    def action_end(self, start_time_total, agent, start_time_action=None, idle_time=None, travel_distance=None,
+                   action_type=None, action_number=None):
         toc = time.perf_counter()
 
         if agent == 'human':
