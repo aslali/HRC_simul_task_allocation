@@ -37,6 +37,7 @@ class Robot(threading.Thread):
         self.safe_dist_hr = 180
         self.measure = measure
 
+
         # print(self.rob_slopdist)
 
     def slop_distance(self):
@@ -61,16 +62,16 @@ class Robot(threading.Thread):
     def tasks_required_time(self):
         for i in range(5):
             self.task.t_task_all[i] = (self.hum_slopdist['TW1'][0] * 2 / self.human.speed,
-                                       self.rob_slopdist['TW1'][0] * 2 / self.speed)
+                                       self.rob_slopdist['TW1'][0] * 2 / self.speed + 2)
         for i in range(5, 10):
             self.task.t_task_all[i] = (self.hum_slopdist['TW2'][0] * 2 / self.human.speed,
-                                       self.rob_slopdist['TW2'][0] * 2 / self.speed)
+                                       self.rob_slopdist['TW2'][0] * 2 / self.speed + 2)
         for i in range(10, 15):
             self.task.t_task_all[i] = (self.hum_slopdist['TW3'][0] * 2 / self.human.speed,
-                                       self.rob_slopdist['TW3'][0] * 2 / self.speed)
+                                       self.rob_slopdist['TW3'][0] * 2 / self.speed + 2)
         for i in range(15, 20):
-            self.task.t_task_all[i] = (self.hum_slopdist['TW1'][0] * 2 / self.human.speed,
-                                       self.rob_slopdist['TW1'][0] * 2 / self.speed)
+            self.task.t_task_all[i] = (self.hum_slopdist['TW4'][0] * 2 / self.human.speed,
+                                       self.rob_slopdist['TW4'][0] * 2 / self.speed + 2)
 
     def action_selection(self):
         pass
@@ -400,6 +401,7 @@ class Robot(threading.Thread):
         return act_info, in_table_zone, available_actions
 
     def run(self):
+        self.measure.human_measures(self.measure.init_time, self.p_human_allocation, self.p_human_error)
         htmax = max(v[0] for v in list(self.task.t_task_all.values()))
         rtmax = max(v[1] for v in list(self.task.t_task_all.values()))
         punish_h = 1.5 * (rtmax + htmax)
@@ -425,7 +427,6 @@ class Robot(threading.Thread):
 
             hum_new_actions = []
             pre_tasks = self.pre_human_tasks_done[:]
-            self.human.done_tasks = list(filter(None, self.human.done_tasks))
             for i in self.human.done_tasks:
                 if i in pre_tasks:
                     pre_tasks.remove(i)
@@ -536,3 +537,5 @@ class Robot(threading.Thread):
             self.measure.action_end(start_time_total=start_time_total, start_time_action=start_time_action,
                                     agent='robot', travel_distance=travel_dist, action_type=next_action['type'],
                                     action_number=next_action['action_number'])
+
+            aaaaaaa = 1

@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import norm
+from scipy.stats import binom
 import pulp as plp
 from itertools import combinations
 import gurobipy
@@ -51,28 +52,39 @@ class Planner:
         self.tm, self.ftm = self.human_error_trans_matrix()
 
     def __init_prob(self):
-        da = [abs(x - self.p_human_allocation) for x in self.alpha_set]
-        im = da.index(min(da))
-        al = self.alpha_set[im]
-        na = len(self.alpha_set)
-        q = 5
-        for i in self.alpha_set:
-            if i == al:
-                self.palpha.append(q / (na + q - 1))
-            else:
-                self.palpha.append(1 / (na + q - 1))
+        # da = [abs(x - self.p_human_allocation) for x in self.alpha_set]
+        # im = da.index(min(da))
+        # al = self.alpha_set[im]
+        # na = len(self.alpha_set)
+        # q = 15
+        # for i in self.alpha_set:
+        #     if i == al:
+        #         self.palpha.append(q / (na + q - 1))
+        #     else:
+        #         self.palpha.append(1 / (na + q - 1))
+        rv = binom(len(self.alpha_set)-1, self.p_human_allocation)
+        x = np.arange(0, len(self.alpha_set))
+        self.palpha = rv.pmf(x)
+        print('before: ', self.p_human_allocation)
+        self.p_human_allocation = sum([a * b for a, b in zip(self.palpha, self.alpha_set)])
+        print('after: ', self.p_human_allocation)
 
-        da = [abs(x - self.p_human_error) for x in self.beta_set]
-        im = da.index(min(da))
-        al = self.alpha_set[im]
-        na = len(self.beta_set)
-        q = 5
-        for i in self.beta_set:
-            if i == al:
-                self.pbeta.append(q / (na + q - 1))
-            else:
-                self.pbeta.append(1 / (na + q - 1))
-
+        # da = [abs(x - self.p_human_error) for x in self.beta_set]
+        # im = da.index(min(da))
+        # al = self.alpha_set[im]
+        # na = len(self.beta_set)
+        # q = 80
+        # for i in self.beta_set:
+        #     if i == al:
+        #         self.pbeta.append(q / (na + q - 1))
+        #     else:
+        #         self.pbeta.append(1 / (na + q - 1))
+        rv1 = binom(len(self.beta_set)-1, self.p_human_error)
+        x = np.arange(0, len(self.beta_set))
+        self.pbeta= rv1.pmf(x)
+        print('before: ', self.p_human_error)
+        self.p_human_error = sum([a * b for a, b in zip(self.pbeta, self.beta_set)])
+        print('after: ', self.p_human_error)
     def gantt_chart(self, th, tr):
         fig, gnt = plt.subplots()
         gnt.set_ylim(0, 50)

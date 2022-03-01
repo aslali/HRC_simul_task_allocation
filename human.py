@@ -194,9 +194,9 @@ class Human(threading.Thread):
             self.task.tasks_allocated_to_human.pop(0)
             ds = self.task.task_to_do[next_action][1]
             ws = self.task.task_to_do[next_action][0]
-            act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
+            act_info = {'type':'tray1', 'start': 'T', 'destination': 'W{}'.format(ws),
                         'destination_num': ds,
-                        'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
+                        'object': self.task.available_color_human_tray[ws], 'action_number': next_action}
             self.task.available_color_human_tray[ws] = []
             self.human_actions_from_allocated.append(next_action)
 
@@ -219,13 +219,15 @@ class Human(threading.Thread):
                     wrong_col = random.choice(colp)
                     col = wrong_col
                     wrong_action_type2 = True
+                    atype = 'error2'
                 else:
                     self.task.tasks_allocated_to_robot.append(next_action)
                     alloc_robot = True
+                    atype = 'allocate'
 
-                act_info = {'start': 'T', 'destination': 'rTray',
+                act_info = {'type': atype, 'start': 'T', 'destination': 'rTray',
                             'destination_num': ws,
-                            'object': self.task.available_color_table[col][-1], 'wait_time': 0}
+                            'object': self.task.available_color_table[col][-1], 'action_number': next_action}
                 self.task.available_color_robot_tray[ws] = self.task.available_color_table[col][-1]
                 self.task.available_color_table[col].pop()
                 ll = self.sim_env.table_blocks[col]['status']
@@ -241,10 +243,13 @@ class Human(threading.Thread):
                     wrong_col = random.choice(colp)
                     col = wrong_col
                     wrong_action_type1 = True
+                    atype = 'error1'
+                else:
+                    atype = 'normal'
 
-                act_info = {'start': 'T', 'destination': 'W{}'.format(self.task.task_to_do[next_action][0]),
+                act_info = {'type': atype, 'start': 'T', 'destination': 'W{}'.format(self.task.task_to_do[next_action][0]),
                             'destination_num': self.task.task_to_do[next_action][1],
-                            'object': self.task.available_color_table[col][-1], 'wait_time': 0}
+                            'object': self.task.available_color_table[col][-1], 'action_number': next_action}
                 self.task.available_color_table[col].pop()
                 ll = self.sim_env.table_blocks[col]['status']
                 ito = len(ll) - 1 - ll[::-1].index(1)
@@ -257,9 +262,9 @@ class Human(threading.Thread):
             col = self.task.task_to_do[next_action][2]
             ds = self.task.task_to_do[next_action][1]
             ws = self.task.task_to_do[next_action][0]
-            act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
+            act_info = {'type':'tray1', 'start': 'T', 'destination': 'W{}'.format(ws),
                         'destination_num': ds,
-                        'object': self.task.available_color_human_tray[ws], 'wait_time': 0}
+                        'object': self.task.available_color_human_tray[ws], 'action_number': next_action}
             self.task.available_color_human_tray[ws] = []
             self.human_actions_from_allocated.append(next_action)
         elif not not_allocated_tasks:
@@ -270,9 +275,9 @@ class Human(threading.Thread):
                 if next_action in self.human_wrong_actions:
                     ds = self.task.task_to_do[next_action][1]
                     ws = self.task.task_to_do[next_action][0]
-                    act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
+                    act_info = {'type': 'error1', 'start': 'T', 'destination': 'W{}'.format(ws),
                                 'destination_num': ds,
-                                'object': self.task.available_color_robot_tray[ws], 'wait_time': 0}
+                                'object': self.task.available_color_robot_tray[ws], 'action_number': next_action}
                     col = self.wrong_action_info[next_action]['color']
                     wrong_action_type1 = True
                     self.double_error.append(next_action)
@@ -281,9 +286,9 @@ class Human(threading.Thread):
                     # col = self.task.task_to_do[next_action][2]
                     ds = self.task.task_to_do[next_action][1]
                     ws = self.task.task_to_do[next_action][0]
-                    act_info = {'start': 'T', 'destination': 'W{}'.format(ws),
+                    act_info = {'type': 'tray2', 'start': 'T', 'destination': 'W{}'.format(ws),
                                 'destination_num': ds,
-                                'object': self.task.available_color_robot_tray[ws], 'wait_time': 0}
+                                'object': self.task.available_color_robot_tray[ws], 'action_number': next_action}
         else:
             raise ValueError('Unconsidered Case')
 
@@ -296,7 +301,8 @@ class Human(threading.Thread):
             pass
         else:
             self.task.finished_tasks.append(next_action)
-        self.done_tasks.append(next_action)
+        if next_action is not None:
+            self.done_tasks.append(next_action)
 
         return act_info, next_action
 
@@ -304,6 +310,7 @@ class Human(threading.Thread):
         # self.human_action('T', 'W4', 4, 10)
         # self.human_action('T', 'W3',2,2)
         first_move = True
+
         while len(self.task.remained_task_both) + len(self.task.remained_task_robot_only) > 0:
             idle_time = 0
             travel_dist = 0
@@ -311,6 +318,7 @@ class Human(threading.Thread):
             if first_move:
                 idle_time, travel_dist = self.human_move_by_position(self.sim_env.human_pos, self.sim_env.human_pos_table)
                 first_move = False
+                action = None
             else:
                 self.task.find_remained_task()
                 self.task.remove_finished_task_precedence()
@@ -318,5 +326,7 @@ class Human(threading.Thread):
                 # print(action, 'num: ', action_num)
                 if action:
                     idle_time, travel_dist = self.human_action(action)
-            self.measure.action_end(start_time_total=start_time, agent='human', idle_time=idle_time, travel_distance=travel_dist)
+            self.measure.action_end(start_time_total=start_time, agent='human', idle_time=idle_time,
+                                    travel_distance=travel_dist, action_type=action['type'] if action else 'idle',
+                                    action_number=action['action_number'] if action else -1)
 

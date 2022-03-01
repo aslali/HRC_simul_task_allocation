@@ -41,6 +41,7 @@ robot = robot.Robot(speed=150, task=task, human=human, sim_env=sim_env, time_ste
 remained_tasks = task.n_task_total
 newAllocation = 1
 
+measure.init_time = measure.start_time()
 robot.start()
 human.start()
 
