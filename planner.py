@@ -62,7 +62,7 @@ class Planner:
         #         self.palpha.append(q / (na + q - 1))
         #     else:
         #         self.palpha.append(1 / (na + q - 1))
-        rv = binom(len(self.alpha_set)-1, self.p_human_allocation)
+        rv = binom(len(self.alpha_set) - 1, self.p_human_allocation)
         x = np.arange(0, len(self.alpha_set))
         self.palpha = rv.pmf(x)
         print('before: ', self.p_human_allocation)
@@ -79,12 +79,13 @@ class Planner:
         #         self.pbeta.append(q / (na + q - 1))
         #     else:
         #         self.pbeta.append(1 / (na + q - 1))
-        rv1 = binom(len(self.beta_set)-1, self.p_human_error)
+        rv1 = binom(len(self.beta_set) - 1, self.p_human_error)
         x = np.arange(0, len(self.beta_set))
-        self.pbeta= rv1.pmf(x)
+        self.pbeta = rv1.pmf(x)
         print('before: ', self.p_human_error)
         self.p_human_error = sum([a * b for a, b in zip(self.pbeta, self.beta_set)])
         print('after: ', self.p_human_error)
+
     def gantt_chart(self, th, tr):
         fig, gnt = plt.subplots()
         gnt.set_ylim(0, 50)
@@ -129,19 +130,16 @@ class Planner:
     def task_selection(self, task, hpenalty, rpenalty, error_penalty, prev_sol,
                        save=False):  # todo: add fairness to the cost function
 
-
         first_step_available_tasks_tray = []
         tt = list(set(task.remained_tasks) - set(task.human_error_tasks_type2))
         for i in task.remained_task_both:
 
             preced_check = any(j in tt for j in task.task_precedence_dict[i])
             # wrong_act = i in self.human_wrong_actions
-            if not preced_check:    # and (i not in task.tasks_allocated_to_human):
+            if not preced_check:  # and (i not in task.tasks_allocated_to_human):
                 first_step_available_tasks_tray.append(i)
 
         first_step_available_tasks = list(set(first_step_available_tasks_tray) - set(task.tasks_allocated_to_human))
-
-
 
         nremained = len(task.remained_task_both)
         opt_model = plp.LpProblem(name="MIP_Model")
@@ -179,11 +177,14 @@ class Planner:
         # mt = max(1, len(first_step_available_tasks) - 1)
         if not task.human_error_tasks_type1:
             if first_step_available_tasks:
-                opt_model += (plp.lpSum(x_vars[i] for i in first_step_available_tasks) <= len(first_step_available_tasks) - 1, 'sumb')
+                opt_model += (
+                    plp.lpSum(x_vars[i] for i in first_step_available_tasks) <= len(first_step_available_tasks) - 1,
+                    'sumb')
             elif first_step_available_tasks_tray:
-                opt_model += (plp.lpSum(x_vars[i] for i in first_step_available_tasks_tray) <= len(first_step_available_tasks_tray) - 1, 'sumb')
+                opt_model += (plp.lpSum(x_vars[i] for i in first_step_available_tasks_tray) <= len(
+                    first_step_available_tasks_tray) - 1, 'sumb')
             else:
-                ccccc= 1
+                ccccc = 1
         # yprev = [[plp.LpVariable(cat=plp.LpBinary, name='d{sol}_{1}'.format(sol, i)) for i in
         #        task.remained_task_both] for sol in prev_sol.keys()]
 
@@ -270,9 +271,12 @@ class Planner:
                     elif i in precedence_type2:
                         if j in precedence_type2[i][0]:
                             if j in tasks_human_error_type2:
-                                opt_model += (s_vars[i] - (s_vars[j] + 0) >= 0, "seq{0}_{1}".format(i, j))   #precedence_type2[i][1]
+                                opt_model += (
+                                    s_vars[i] - (s_vars[j] + 0) >= 0,
+                                    "seq{0}_{1}".format(i, j))  # precedence_type2[i][1]
                             else:
-                                opt_model += (s_vars[i] - (s_vars[j] + precedence_type2[i][1]) >= 0, "seq{0}_{1}".format(i, j))
+                                opt_model += (
+                                    s_vars[i] - (s_vars[j] + precedence_type2[i][1]) >= 0, "seq{0}_{1}".format(i, j))
 
         comh = plp.combination(list(range(nhtask)), 2)
         for c1, c2 in comh:
@@ -299,19 +303,19 @@ class Planner:
             if (robot_tasks[c1] in temp_tasks) and (robot_tasks[c2] not in temp_tasks):
                 opt_model += (
                     s_vars[robot_tasks[c2]] - (s_vars[robot_tasks[c1]] + 0) + mlarge * (
-                            yr[c1][c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
+                        yr[c1][c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
                 opt_model += (
                     s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + task_time[robot_tasks[c2]]) + mlarge * (
-                        1 - yr[c1][c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
+                            1 - yr[c1][c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
 
             elif (robot_tasks[c1] not in temp_tasks) and (robot_tasks[c2] in temp_tasks):
                 opt_model += (
                     s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + 0) + mlarge * (
-                            yr[c1][c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
+                        yr[c1][c2]) >= 0, "B{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
 
                 opt_model += (
                     s_vars[robot_tasks[c2]] - (s_vars[robot_tasks[c1]] + task_time[robot_tasks[c1]]) +
-                    mlarge * (1-yr[c1][c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
+                    mlarge * (1 - yr[c1][c2]) >= 0, "Bp{0}_{1}".format(robot_tasks[c1], robot_tasks[c2]))
             elif (robot_tasks[c1] not in temp_tasks) and (robot_tasks[c2] not in temp_tasks):
                 opt_model += (
                     s_vars[robot_tasks[c1]] - (s_vars[robot_tasks[c2]] + task_time[robot_tasks[c2]]) +
@@ -334,7 +338,7 @@ class Planner:
 
         rt = list(set(robot_tasks) - tasks_human_error)
 
-        rt = list(set(robot_tasks)-set(precedence_type2.keys())-tasks_human_error_type2)
+        rt = list(set(robot_tasks) - set(precedence_type2.keys()) - tasks_human_error_type2)
         # if tasks_human_error_type2:
         #     start_zero_alloc = {}
         #     for k in precedence_type2.keys():
@@ -409,13 +413,17 @@ class Planner:
                     histk = action_history[:]
 
                 nhistk = len(histk)
-                n_picked = sum(histk)
-                n_not_picked = nhistk - n_picked
-
+                n_picked = len([x for x in histk if x == 1])
+                n_assign = len([x for x in histk if x == -1])
+                n_not_picked = nhistk - n_picked - n_assign
+                betaa = 3
+                denom = n_picked + n_not_picked + betaa * n_assign
                 if human_action == 1:
-                    p = max(0.001, alpha * (n_picked / nhistk))
+                    # p = max(0.001, alpha * (n_picked / nhistk))
+                    p = max(0.001, alpha *(n_picked / denom))
                 else:
-                    p = max(0.001, (1 - alpha) * (n_not_picked / nhistk))
+                    # p = max(0.001, (1 - alpha) * (n_not_picked / nhistk))
+                    p = max(0.001, (1 - alpha) *(n_not_picked + betaa * n_assign) / denom)
             else:
                 p = 1
 
@@ -434,11 +442,11 @@ class Planner:
                 pp += p1 * p2 * py_temp[k]
             unnorm_p.append(pp * p_obs)
         self.palpha = [xv / sum(unnorm_p) for xv in unnorm_p]
-        # plt.plot(self.alpha_set, self.palpha)
-        # plt.show()
+        plt.plot(self.alpha_set, self.palpha)
+        plt.show()
         for i in range(ny):
             self.p_human_allocation = sum([a * b for a, b in zip(self.palpha, self.alpha_set)])
-        # print(self.p_human_allocation)
+        print(self.p_human_allocation)
 
     def human_error_update(self, human_action, action_history):
 

@@ -181,7 +181,7 @@ class Human(threading.Thread):
     def action_selection(self):
         not_allocated_tasks, tasks_to_allocate, human_available_wrong_tasks = self.get_available_tasks()
 
-        pf = 1  # random.random()
+        pf = random.random()
         wrong_action_type1 = False
         wrong_action_type2 = False
         alloc_robot = False
@@ -206,7 +206,7 @@ class Human(threading.Thread):
             else:
                 next_action = random.choice(not_allocated_tasks)
             col = self.task.task_to_do[next_action][2]
-            cond1 = (next_action in tasks_to_allocate) and (random.random() < 1.4 or self.p_conformity < 1.3)
+            cond1 = (next_action in tasks_to_allocate) and (random.random() < 0.2 or self.p_conformity < 0.35)
             cond2 = len(not_allocated_tasks) > 1 or self.task.tasks_allocated_to_human
             if cond1 and cond2:
                 ws = self.task.task_to_do[next_action][0]

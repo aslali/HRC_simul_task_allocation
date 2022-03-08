@@ -439,7 +439,7 @@ class Robot(threading.Thread):
                         if ts in self.cur_allocated_tasks:
                             haction = 1
                         elif ts in self.task.tasks_allocated_to_robot:
-                            haction = 0  # Todo: this reduces p_conform significantly
+                            haction = -1  # Todo: this reduces p_conform significantly
                         else:
                             haction = 0
 

@@ -36,7 +36,7 @@ for i in task_to_do.values():
 
 sim_env = visualhci.SHSCPackaging(pattern_col)
 measure = measure.Measure()
-human = human.Human(speed=200, task=task, p_conformity=0.7, p_error=0.99, sim_env=sim_env, time_step=time_step, measure=measure)
+human = human.Human(speed=200, task=task, p_conformity=0.4, p_error=0.0, sim_env=sim_env, time_step=time_step, measure=measure)
 robot = robot.Robot(speed=150, task=task, human=human, sim_env=sim_env, time_step=time_step, measure=measure)
 remained_tasks = task.n_task_total
 newAllocation = 1
