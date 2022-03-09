@@ -442,8 +442,8 @@ class Planner:
                 pp += p1 * p2 * py_temp[k]
             unnorm_p.append(pp * p_obs)
         self.palpha = [xv / sum(unnorm_p) for xv in unnorm_p]
-        plt.plot(self.alpha_set, self.palpha)
-        plt.show()
+        # plt.plot(self.alpha_set, self.palpha)
+        # plt.show()
         for i in range(ny):
             self.p_human_allocation = sum([a * b for a, b in zip(self.palpha, self.alpha_set)])
         print(self.p_human_allocation)
@@ -494,8 +494,8 @@ class Planner:
                 pp += p1 * p2 * py_temp[k]
             unnorm_p.append(pp * p_obs)
         self.pbeta = [xv / sum(unnorm_p) for xv in unnorm_p]
-        plt.plot(self.beta_set, self.pbeta)
-        plt.show()
+        # plt.plot(self.beta_set, self.pbeta)
+        # plt.show()
         for i in range(ny):
             self.p_human_error = sum([a * b for a, b in zip(self.pbeta, self.beta_set)])
 

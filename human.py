@@ -25,6 +25,7 @@ class Human(threading.Thread):
         self.human_actions_from_allocated = []
         self.slop_distance()
         self.measure = measure
+        self.action_right_choose = {}
 
         # print(self.rob_slopdist)
 
@@ -199,6 +200,7 @@ class Human(threading.Thread):
                         'object': self.task.available_color_human_tray[ws], 'action_number': next_action}
             self.task.available_color_human_tray[ws] = []
             self.human_actions_from_allocated.append(next_action)
+            self.action_right_choose[next_action] = 1
 
         elif not_allocated_tasks or (is_error and human_available_wrong_tasks):
             if is_error:
@@ -254,7 +256,7 @@ class Human(threading.Thread):
                 ll = self.sim_env.table_blocks[col]['status']
                 ito = len(ll) - 1 - ll[::-1].index(1)
                 self.sim_env.table_blocks[col]['status'][ito] = 0
-
+            self.action_right_choose[next_action] = 1
         elif self.task.tasks_allocated_to_human:
             ac = random.randint(0, len(self.task.tasks_allocated_to_human) - 1)
             next_action = self.task.tasks_allocated_to_human[ac]
@@ -267,6 +269,7 @@ class Human(threading.Thread):
                         'object': self.task.available_color_human_tray[ws], 'action_number': next_action}
             self.task.available_color_human_tray[ws] = []
             self.human_actions_from_allocated.append(next_action)
+            self.action_right_choose[next_action] = 0
         elif not not_allocated_tasks:
             pa = [i for i in self.human_wrong_actions if self.human_wrong_actions[i] == 'type2']
             pa += self.task.tasks_allocated_to_robot
@@ -282,13 +285,14 @@ class Human(threading.Thread):
                     wrong_action_type1 = True
                     self.double_error.append(next_action)
                 else:
-                    self.task.tasks_allocated_to_human.remove(next_action)
+                    self.task.tasks_allocated_to_robot.remove(next_action)
                     # col = self.task.task_to_do[next_action][2]
                     ds = self.task.task_to_do[next_action][1]
                     ws = self.task.task_to_do[next_action][0]
                     act_info = {'type': 'tray2', 'start': 'T', 'destination': 'W{}'.format(ws),
                                 'destination_num': ds,
                                 'object': self.task.available_color_robot_tray[ws], 'action_number': next_action}
+            self.action_right_choose[next_action] = 1
         else:
             raise ValueError('Unconsidered Case')
 
