@@ -5,6 +5,7 @@ import pulp as plp
 from itertools import combinations
 import gurobipy
 import matplotlib.pyplot as plt
+import fontTools
 import pickle
 
 import copy
@@ -511,12 +512,35 @@ class Planner:
                 xi = np.arange(y[i], y[i + 1] + 0.001, 0.001)
                 yi = skewedgaussian(xi, np.min([1.1, y[j + 1]]), 0.1, 0.1)
                 tm[j, i] = np.trapz(yi, xi)
-        fig, ax = plt.subplots(1, 2)
-        ax[0].imshow(tm, extent=[y[0], y[ny - 1], 0, 1], aspect=1, cmap='gray_r')
-        ax[0].set_xticks(y[0:ny])
 
+        pt = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+        fig1, ax1 = plt.subplots()
+        plt.subplot()
+        plt.imshow(tm.T, extent=[y[0], y[ny - 1] + 0.1, 0, 1.1], origin='lower', aspect=1, cmap='gray_r', vmin=0, vmax=1)
+        ax1.set_xticks(y[0:ny]+0.05)
+        ax1.set_xticklabels(pt)
+        ax1.set_yticks(y[0:ny]+0.05)
+        ax1.set_yticklabels(pt)
+        ax1.set_xlabel(r'$p_e$')
+        ax1.set_ylabel(r'$p_e^\prime$')
+        ax1.set_title(r'$T_y, \quad a^h \in M_1$')
+        # plt.colorbar(label="Like/Dislike Ratio", orientation="vertical")
+        plt.savefig('heat1.eps', format='eps', bbox_inches='tight',pad_inches = 0)
+        plt.show()
+
+        fig2, ax2 = plt.subplots()
         ftm = np.flip(tm, 0)
         ftm = np.flip(ftm, 1)
-        ax[1].imshow(ftm, extent=[y[0], y[ny - 1], 0, 1], aspect=1, cmap='gray_r')
+        plt.subplot()
+        plt.imshow(ftm.T, extent=[y[0], y[ny - 1]+0.1, 0, 1.1], origin='lower',aspect=1, cmap='gray_r', vmin=0, vmax=1)
+        ax2.set_xticks(y[0:ny]+0.05)
+        ax2.set_yticks(y[0:ny]+0.05)
+        ax2.set_xticklabels(pt)
+        ax2.set_yticklabels(pt)
+        ax2.set_xlabel(r'$p_e$')
+        ax2.set_ylabel(r'$p_e^\prime$')
+        ax2.set_title(r'$T_y, \quad a^h \in M_2$')
+        plt.colorbar(orientation="vertical")
+        plt.savefig('heat2.eps', format='eps', bbox_inches='tight',pad_inches = 0)
         plt.show()
         return tm, ftm
