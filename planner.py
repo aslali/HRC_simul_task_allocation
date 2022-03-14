@@ -28,7 +28,6 @@ class Planner:
             a_file = open("selection.pkl", "rb")
             output = pickle.load(a_file)
             self.last_selection = output
-            # print(output)
         except IOError:
             print("No inital solution: selection")
             self.last_selection = None
@@ -37,7 +36,6 @@ class Planner:
             a_file = open("schedule.pkl", "rb")
             output = pickle.load(a_file)
             self.last_scheduling = output
-            # print(output)
         except IOError:
             print("No inital solution: schedule")
             self.last_scheduling = None
@@ -66,9 +64,7 @@ class Planner:
         rv = binom(len(self.alpha_set) - 1, self.p_human_allocation)
         x = np.arange(0, len(self.alpha_set))
         self.palpha = rv.pmf(x)
-        print('before: ', self.p_human_allocation)
         self.p_human_allocation = sum([a * b for a, b in zip(self.palpha, self.alpha_set)])
-        print('after: ', self.p_human_allocation)
 
         # da = [abs(x - self.p_human_error) for x in self.beta_set]
         # im = da.index(min(da))
@@ -83,9 +79,7 @@ class Planner:
         rv1 = binom(len(self.beta_set) - 1, self.p_human_error)
         x = np.arange(0, len(self.beta_set))
         self.pbeta = rv1.pmf(x)
-        print('before: ', self.p_human_error)
         self.p_human_error = sum([a * b for a, b in zip(self.pbeta, self.beta_set)])
-        print('after: ', self.p_human_error)
 
     def gantt_chart(self, th, tr):
         fig, gnt = plt.subplots()
@@ -175,7 +169,23 @@ class Planner:
                                            + rpenalty * (1 - 1))
                         for i in task.remained_task_both),
                     sense=plp.LpConstraintGE, rhs=0, name="constraint_2"))}
-        # mt = max(1, len(first_step_available_tasks) - 1)
+
+
+        # constraints = {1: opt_model.addConstraint(
+        #     plp.LpConstraint(
+        #         e=z_var - plp.lpSum(
+        #             x_vars[i] * (task.t_task_all[i][0])
+        #             for i in task.remained_task_both),
+        #         sense=plp.LpConstraintGE, rhs=0, name="constraint_1")),
+        #     2: opt_model.addConstraint(
+        #         plp.LpConstraint(
+        #             e=z_var - plp.lpSum(
+        #                 (1 - x_vars[i]) * ((task.t_task_all[i][1] * (1 + 1 * alloc_task_human[i])
+        #                                     + 0 * error_penalty) * 1
+        #                                    + rpenalty * (1 - 1))
+        #                 for i in task.remained_task_both),
+        #             sense=plp.LpConstraintGE, rhs=0, name="constraint_2"))}
+
         if not task.human_error_tasks_type1:
             if first_step_available_tasks:
                 opt_model += (
@@ -417,14 +427,14 @@ class Planner:
                 n_picked = len([x for x in histk if x == 1])
                 n_assign = len([x for x in histk if x == -1])
                 n_not_picked = nhistk - n_picked - n_assign
-                betaa = 3
+                betaa = 10
                 denom = n_picked + n_not_picked + betaa * n_assign
                 if human_action == 1:
                     # p = max(0.001, alpha * (n_picked / nhistk))
-                    p = max(0.001, alpha *(n_picked / denom))
+                    p = max(0.001, alpha * (n_picked / denom))
                 else:
                     # p = max(0.001, (1 - alpha) * (n_not_picked / nhistk))
-                    p = max(0.001, (1 - alpha) *(n_not_picked + betaa * n_assign) / denom)
+                    p = max(0.001, (1 - alpha) * (n_not_picked + betaa * n_assign) / denom)
             else:
                 p = 1
 
@@ -447,7 +457,6 @@ class Planner:
         # plt.show()
         for i in range(ny):
             self.p_human_allocation = sum([a * b for a, b in zip(self.palpha, self.alpha_set)])
-        print(self.p_human_allocation)
 
     def human_error_update(self, human_action, action_history):
 
@@ -461,7 +470,7 @@ class Planner:
 
             return p
 
-        def pih(human_action, action_history, khist):
+        def pih(human_action, alpha, action_history, khist):
             if action_history:
                 if len(action_history) > khist:
                     histk = action_history[-khist:]
@@ -474,9 +483,9 @@ class Planner:
                 p_failed = n_failed / nhistk
 
                 if human_action == 1:
-                    p = max(0.001, 1 - p_failed)
+                    p = max(0.001, (1 - p_failed) * (1-alpha))
                 else:
-                    p = max(0.001, p_failed)
+                    p = max(0.001, p_failed * alpha)
             else:
                 p = 1
 
@@ -491,7 +500,7 @@ class Planner:
             pp = 0
             for k in range(ny):
                 p1 = pyp(self.beta_set, self.tm, self.ftm, self.beta_set[j], self.beta_set[k], human_action)
-                p2 = pih(human_action, action_history, self.k_hist)
+                p2 = pih(human_action, self.beta_set[k], action_history, self.k_hist)
                 pp += p1 * p2 * py_temp[k]
             unnorm_p.append(pp * p_obs)
         self.pbeta = [xv / sum(unnorm_p) for xv in unnorm_p]
@@ -516,31 +525,33 @@ class Planner:
         pt = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
         fig1, ax1 = plt.subplots()
         plt.subplot()
-        plt.imshow(tm.T, extent=[y[0], y[ny - 1] + 0.1, 0, 1.1], origin='lower', aspect=1, cmap='gray_r', vmin=0, vmax=1)
-        ax1.set_xticks(y[0:ny]+0.05)
+        plt.imshow(tm.T, extent=[y[0], y[ny - 1] + 0.1, 0, 1.1], origin='lower', aspect=1, cmap='gray_r', vmin=0,
+                   vmax=1)
+        ax1.set_xticks(y[0:ny] + 0.05)
         ax1.set_xticklabels(pt)
-        ax1.set_yticks(y[0:ny]+0.05)
+        ax1.set_yticks(y[0:ny] + 0.05)
         ax1.set_yticklabels(pt)
-        ax1.set_xlabel(r'$p_e$')
-        ax1.set_ylabel(r'$p_e^\prime$')
-        ax1.set_title(r'$T_y, \quad a^h \in M_1$')
+        ax1.set_xlabel(r'$p_e$', fontsize=15)
+        ax1.set_ylabel(r'$p_e^\prime$', fontsize=15)
+        ax1.set_title(r'$T_y, \quad a^h \in M_1$', fontsize=15)
         # plt.colorbar(label="Like/Dislike Ratio", orientation="vertical")
-        plt.savefig('heat1.eps', format='eps', bbox_inches='tight',pad_inches = 0)
+        # plt.savefig('heat1.eps', format='eps', bbox_inches='tight', pad_inches=0)
         plt.show()
 
         fig2, ax2 = plt.subplots()
         ftm = np.flip(tm, 0)
         ftm = np.flip(ftm, 1)
         plt.subplot()
-        plt.imshow(ftm.T, extent=[y[0], y[ny - 1]+0.1, 0, 1.1], origin='lower',aspect=1, cmap='gray_r', vmin=0, vmax=1)
-        ax2.set_xticks(y[0:ny]+0.05)
-        ax2.set_yticks(y[0:ny]+0.05)
+        plt.imshow(ftm.T, extent=[y[0], y[ny - 1] + 0.1, 0, 1.1], origin='lower', aspect=1, cmap='gray_r', vmin=0,
+                   vmax=1)
+        ax2.set_xticks(y[0:ny] + 0.05)
+        ax2.set_yticks(y[0:ny] + 0.05)
         ax2.set_xticklabels(pt)
         ax2.set_yticklabels(pt)
-        ax2.set_xlabel(r'$p_e$')
-        ax2.set_ylabel(r'$p_e^\prime$')
-        ax2.set_title(r'$T_y, \quad a^h \in M_2$')
+        ax2.set_xlabel(r'$p_e$', fontsize=15)
+        ax2.set_ylabel(r'$p_e^\prime$', fontsize=15)
+        ax2.set_title(r'$T_y, \quad a^h \in M_2$', fontsize=15)
         plt.colorbar(orientation="vertical")
-        plt.savefig('heat2.eps', format='eps', bbox_inches='tight',pad_inches = 0)
+        # plt.savefig('heat2.eps', format='eps', bbox_inches='tight', pad_inches=0)
         plt.show()
         return tm, ftm

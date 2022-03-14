@@ -9,7 +9,7 @@ import copy
 class Robot(threading.Thread):
     speed = 1.0
 
-    def __init__(self, task, speed, human, sim_env, time_step, measure):
+    def __init__(self, task, speed, human, sim_env, time_step, measure,  fast_run=False, rfast = 1):
         threading.Thread.__init__(self)
 
         self.p_human_allocation = 0.8
@@ -36,8 +36,9 @@ class Robot(threading.Thread):
         self.save_init_sol = False
         self.safe_dist_hr = 180
         self.measure = measure
+        self.update_sim = not fast_run
+        self.rfast = rfast
 
-        # print(self.rob_slopdist)
 
     def slop_distance(self):
         cases = ['W1', 'W2', 'W3', 'W4']
@@ -80,7 +81,6 @@ class Robot(threading.Thread):
     #     g = np.array(self.rpoints[goal])
     #     name = start + goal if start + goal in self.rob_slopdist else goal + start
     #     t = round(self.rob_slopdist[name][0] / self.speed)
-    #     # print(t)
     #     x = np.linspace(s[0], g[0], round(1 / self.time_step) * t)
     #     y = self.rob_slopdist[name][1] * (x - s[0]) + s[1]
     #     xcur = s[0]
@@ -161,7 +161,10 @@ class Robot(threading.Thread):
                 hum_pre_pos_x = self.sim_env.human_pos[0]
                 hum_pre_pos_y = self.sim_env.human_pos[1]
                 self.sim_env.move_human_robot([xcur, ycur], 'robot')
-                time.sleep(self.time_step)
+                if self.update_sim:
+                    time.sleep(self.time_step)
+                else:
+                    time.sleep(self.time_step / self.rfast)
         return travel_dist
 
     # def robot_object_move(self, start, object_num, goal, goal_num):
@@ -195,7 +198,7 @@ class Robot(threading.Thread):
         travel_dist = 0
         if goal == 'hTray':
             self.sim_env.move_object(object_num=object_num, destination_name=goal, destination_num=goal_num)
-            self.sim_env.root.update_idletasks()
+            # self.sim_env.root.update_idletasks()
 
         elif start == 'rTray':
             ll = self.sim_env.table_blocks[color]['status']
@@ -212,7 +215,7 @@ class Robot(threading.Thread):
             xcur = s[0]
             ycur = s[1]
             self.sim_env.move_object(object_num, goal=[xcur, ycur])
-            self.sim_env.root.update_idletasks()
+            # self.sim_env.root.update_idletasks()
 
             count = 1
             hum_pre_pos_x = None
@@ -269,7 +272,10 @@ class Robot(threading.Thread):
 
                 self.sim_env.move_human_robot([xcur, ycur], 'robot')
                 self.sim_env.move_object(object_num, goal=[xcur, ycur])
-                time.sleep(self.time_step)
+                if self.update_sim:
+                    time.sleep(self.time_step)
+                else:
+                    time.sleep(self.time_step/self.rfast)
                 count += 1
             if goal_num is None:
                 ll = self.sim_env.table_blocks[color]['status']
@@ -278,7 +284,7 @@ class Robot(threading.Thread):
                 self.sim_env.move_object(object_num=object_num, goal=goal_pos)
             else:
                 self.sim_env.move_object(object_num, destination_name=goal, destination_num=goal_num)
-            self.sim_env.root.update_idletasks()
+            # self.sim_env.root.update_idletasks()
         return travel_dist
 
     def robot_action(self, next_action):
@@ -430,7 +436,6 @@ class Robot(threading.Thread):
         next_robot_turn = False
         isfinished = len(self.task.remained_task_both) + len(self.task.remained_task_robot_only) == 0
         while not isfinished:
-            print(self.task.remained_task_both)
             start_time_total = self.measure.start_time()
             self.task.find_remained_task()
             self.task.remove_finished_task_precedence()

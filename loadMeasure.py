@@ -1,13 +1,8 @@
 import matplotlib.pyplot as plt
 import time
 import pickle
-
-
-
-# class LoadMeasure:
-#
-#     # def __init__(self, case_name):
-#     #     self.case_name = case_name
+import glob
+from statistics import mean
 
 def load_data(filename):
     with open(filename, 'rb') as f:
@@ -18,90 +13,51 @@ def load_data(filename):
             print('Cannot write into object')
 
 
-    # def plot_human_measures(self):
-    #     fig, ax = plt.subplots()
-    #     x_val1 = [x[0] for x in self.p_f]
-    #     y_val1 = [x[1] for x in self.p_f]
-    #     x_val2 = [x[0] for x in self.p_e]
-    #     y_val2 = [x[1] for x in self.p_e]
-    #     ax.plot(x_val1, y_val1)
-    #     ax.plot(x_val2, y_val2)
-    #     plt.show()
-    #
-    #
-    #
-    # def plot_dists_error(self):
-    #     nd = len(self.de)
-    #     nc = 3
-    #     nr = nd // nc
-    #     if nd % nc > 0:
-    #         nr += 1
-    #     fig, axs = plt.subplots(nr, nc, squeeze=False)
-    #
-    #     i = 0
-    #     j = 0
-    #     for p in self.de:
-    #         axs[i, j].plot(self.de[p]['eset'], self.de[p]['perror'])
-    #         axs[i, j].set_title(p)
-    #         j += 1
-    #         if j == nc:
-    #             j = 0
-    #             i += 1
-    #     plt.show()
-    #
-    #
-    #
-    # def plot_dists_follow(self):
-    #     nd = len(self.df)
-    #     nc = 3
-    #     nr = nd // nc
-    #     if nd % nc > 0:
-    #         nr += 1
-    #     fig, axs = plt.subplots(nr, nc, squeeze=False)
-    #
-    #     i = 0
-    #     j = 0
-    #     for p in self.df:
-    #         axs[i, j].plot(self.df[p]['fset'], self.df[p]['pfollow'])
-    #         axs[i, j].set_title(p)
-    #         j += 1
-    #         if j == nc:
-    #             j = 0
-    #             i += 1
-    #     plt.show()
-    #
-    # def plot_times_actions(self):
-    #     htime_gantt = []
-    #     rtime_gantt = []
-    #     htime_colorface = []
-    #     rtime_colorface = []
-    #     col = {'error1': 'tab:red', 'error2': '#D25E5D', 'allocate': 'tab:blue', 'tray1': '#6BF3FC',
-    #            'normal': 'tab:green', 'tray2': '#27F727', 'idle': '#e7edf3'}
-    #     for ii in self.action_times_human:
-    #         htime_gantt.append((ii[0], ii[1]))
-    #         htime_colorface.append(col[ii[3]])
-    #
-    #     for ii in self.action_times_robot:
-    #         rtime_gantt.append((ii[0], ii[4]))
-    #         rtime_colorface.append(col[ii[5]])
-    #
-    #     fig, ax = plt.subplots()
-    #     prop = {'edgecolor': 'k'}
-    #     ax.broken_barh(rtime_gantt, (10, 9), facecolors=rtime_colorface, **prop)
-    #     ax.broken_barh(htime_gantt, (20, 9), facecolors=htime_colorface, **prop)
-    #     ax.set_ylim(5, 35)
-    #     ax.set_xlim(0, 200)
-    #     ax.set_xlabel('Time (s)')
-    #     ax.set_yticks([15, 25], labels=['Robot', 'Human'])
-    #     ax.grid(True)
-    #     plt.show()
-    #
-    # def run_all(self):
-    #     self.load_data('f4e0.pickle')
-    #     self.plot_times_actions()
-    #     self.plot_human_measures()
-    #     self.plot_dists_error()
-    #     self.plot_dists_follow()
-measure = load_data('f4e7.pickle')
-measure.run_all()
-aa = 1
+def creat_table(casename):
+    def get_mean(allvar):
+        c={}
+        for i in allvar:
+            c[i] = round(mean(allvar[i]), 1)
+            print('Mean of {0} is {1}'.format(i, c[i]))
+        print('{0} & {1} & {2} & {3} & {4} & {5} & {6} & {7} & {8} & {9} & {10}'.format(c['nwrong'], c['twrong'],
+                                                                                        c['n_tot_hum_assign'],
+                                                                                        c['n_tot_rob_assign'],
+                                                                                        c['hum_time'],
+                                                                                        c['rob_time'], c['d_h'],
+                                                                                        c['d_r'], c['n_h'], c['n_r'],
+                                                                                        c['idle_time']))
+    allvar = {'twrong': [], 'nwrong': [], 'n_tot_hum_assign': [], 'n_error2': [], 'n_self_hum_assign': [],
+              'n_tot_rob_assign': [], 'n_self_rob_assign': [], 'idle_time': [], 'rob_time': [], 'hum_time': [],
+              'd_h': [], 'd_r': [], 'n_h': [], 'n_r': []}
+    fildir = glob.glob(casename)
+    for ad in fildir:
+        fil = load_data(ad)
+        allvar['twrong'].append(fil.twrong)
+        allvar['nwrong'].append(fil.nwrong)
+        allvar['n_tot_hum_assign'].append(fil.n_tot_hum_assign)
+        allvar['n_error2'].append(fil.n_error2)
+        allvar['n_self_hum_assign'].append(fil.n_self_hum_assign)
+        allvar['n_tot_rob_assign'].append(fil.n_tot_rob_assign)
+        allvar['n_self_rob_assign'].append(fil.n_self_rob_assign)
+        allvar['idle_time'].append(fil.idle_time)
+        allvar['rob_time'].append(fil.rob_time)
+        print(ad, fil.rob_time)
+        allvar['hum_time'].append(fil.hum_time)
+        allvar['d_h'].append(fil.dh)
+        allvar['d_r'].append(fil.dr)
+        allvar['n_h'].append(len(fil.action_times_human))
+        allvar['n_r'].append(len(fil.action_times_robot))
+    print(allvar['n_tot_rob_assign'])
+    get_mean(allvar)
+
+
+
+
+
+
+
+
+# measure = load_data('f9_1/f9e1_1.pickle')
+# measure.run_all()
+creat_table("f6_8/*")
+

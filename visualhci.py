@@ -10,7 +10,7 @@ from tkinter import *
 class SHSCPackaging:
     a = 1
 
-    def __init__(self, pattern):
+    def __init__(self, pattern, fast_run=False):
         self.field_width = 1700
         self.field_height = 900
         # self.root = mtTkinter.Tk()
@@ -45,6 +45,7 @@ class SHSCPackaging:
         self.table_w = 350
         self.pattern_col = pattern
         self.creat_env()
+        self.update = not fast_run
 
     def creat_env(self):
 
@@ -347,16 +348,22 @@ class SHSCPackaging:
 
         dpx = gp[0] - sp[0]
         dpy = gp[1] - sp[1]
-        self.canvas.move(self.block_handle[object_num], dpx, dpy)
+        # self.canvas.move(self.block_handle[object_num], dpx, dpy)
         self.block_pos[object_num][0] = gp[0]
         self.block_pos[object_num][1] = gp[1]
-
+        if self.update:
+            self.canvas.move(self.block_handle[object_num], dpx, dpy)
+            self.root.update_idletasks()
     def move_human_robot(self, new_pos, agent):
         if agent == 'human':
             dhx = new_pos[0] - self.human_pos[0]
             dhy = new_pos[1] - self.human_pos[1]
-            self.canvas.move(self.human_handle, dhx, dhy)
-            self.canvas.move(self.human_handle_text, dhx, dhy)
+            # self.canvas.move(self.human_handle, dhx, dhy)
+            # self.canvas.move(self.human_handle_text, dhx, dhy)
+            if self.update:
+                self.canvas.move(self.human_handle, dhx, dhy)
+                self.canvas.move(self.human_handle_text, dhx, dhy)
+                self.root.update_idletasks()
             self.human_pos[0] = new_pos[0]
             self.human_pos[1] = new_pos[1]
             self.human_pos_text[0] += dhx
@@ -364,10 +371,15 @@ class SHSCPackaging:
         else:
             dhx = new_pos[0] - self.robot_pos[0]
             dhy = new_pos[1] - self.robot_pos[1]
-            self.canvas.move(self.robot_handle, dhx, dhy)
-            self.canvas.move(self.robot_handle_text, dhx, dhy)
+            # self.canvas.move(self.robot_handle, dhx, dhy)
+            # self.canvas.move(self.robot_handle_text, dhx, dhy)
+            if self.update:
+                self.canvas.move(self.robot_handle, dhx, dhy)
+                self.canvas.move(self.robot_handle_text, dhx, dhy)
+                self.root.update_idletasks()
             self.robot_pos[0] = new_pos[0]
             self.robot_pos[1] = new_pos[1]
             self.robot_pos_text[0] += dhx
             self.robot_pos_text[1] += dhy
-        self.root.update_idletasks()
+        if self.update:
+            self.root.update_idletasks()

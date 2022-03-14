@@ -7,6 +7,11 @@ import robot
 import measure
 
 time_step = 0.064
+fast_run = True
+if fast_run:
+    rfast = 10
+else:
+    rfast = 1
 
 task_only_human = []
 task_only_robot = []
@@ -34,10 +39,10 @@ col = dict(zip(col2, col1))
 for i in task_to_do.values():
     pattern_col[(i[0], i[1])] = col[i[2]]
 
-sim_env = visualhci.SHSCPackaging(pattern_col)
-measure = measure.Measure(case_name='f4e7')
-human = human.Human(speed=200, task=task, p_conformity=0.4, p_error=0.7, sim_env=sim_env, time_step=time_step, measure=measure)
-robot = robot.Robot(speed=150, task=task, human=human, sim_env=sim_env, time_step=time_step, measure=measure)
+sim_env = visualhci.SHSCPackaging(pattern_col, fast_run=fast_run)
+measure = measure.Measure(case_name='f1e0', fast_run=fast_run, rfast=rfast)
+human = human.Human(speed=200, task=task, p_conformity=0.2, p_error=0.5, sim_env=sim_env, time_step=time_step, measure=measure, fast_run=fast_run, rfast=rfast)
+robot = robot.Robot(speed=150, task=task, human=human, sim_env=sim_env, time_step=time_step, measure=measure, fast_run=fast_run, rfast=rfast)
 remained_tasks = task.n_task_total
 newAllocation = 1
 
