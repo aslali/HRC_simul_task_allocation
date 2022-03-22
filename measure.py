@@ -106,6 +106,7 @@ class Measure:
     def human_measures(self, start_time, p_following, p_error):
         self.p_f.append((start_time - self.init_time, p_following))
         self.p_e.append((start_time - self.init_time, p_error))
+        print('time: ', start_time -self.init_time, ' measure')
 
     def plot_human_measures(self):
         fig, ax = plt.subplots()
@@ -120,6 +121,7 @@ class Measure:
     def human_dist_error(self, start_time, pe, se):
         st = (start_time - self.init_time) * self.rfast
         self.de[st] = {'perror': pe, 'eset': se}
+        print('time: ', st, ' error')
 
     def plot_dists_error(self):
         nd = len(self.de)
@@ -170,6 +172,7 @@ class Measure:
     def human_dist_follow(self, start_time, pf, sf):
         st = (start_time - self.init_time) * self.rfast
         self.df[st] = {'pfollow': pf, 'fset': sf}
+        print('time: ', st, ' follow')
 
     def plot_dists_follow(self):
         nd = len(self.df)
