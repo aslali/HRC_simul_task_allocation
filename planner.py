@@ -5,6 +5,8 @@ import pulp as plp
 from itertools import combinations
 import gurobipy
 import matplotlib.pyplot as plt
+plt.rcParams['pdf.fonttype'] = 42
+plt.rcParams['ps.fonttype'] = 42
 import fontTools
 import pickle
 
@@ -42,7 +44,8 @@ class Planner:
         self.previous_htasks = None
         self.previous_rtasks = None
 
-        self.k_hist = 3
+        self.k_hist_error = 3
+        self.k_hist_follow = 3
         self.alpha_set = [0, 0.2, 0.4, 0.6, 0.8, 1.0]
         self.palpha = []
         self.beta_set = list(np.arange(0, 1.1, 0.1))
@@ -205,7 +208,7 @@ class Planner:
         objective = z_var
         opt_model.sense = plp.LpMinimize
         opt_model.setObjective(objective)
-        opt_model.solve(plp.GUROBI_CMD(msg=False, warmStart=True))
+        opt_model.solve(plp.GUROBI_CMD(timeLimit=3, msg=False, warmStart=True))
 
         varlist = opt_model.variablesDict()
         self.last_selection = varlist
@@ -449,7 +452,7 @@ class Planner:
             pp = 0
             for k in range(ny):
                 p1 = pyp(self.alpha_set[j], self.alpha_set[k])
-                p2 = pih(human_action, self.alpha_set[k], action_history, self.k_hist)
+                p2 = pih(human_action, self.alpha_set[k], action_history, self.k_hist_follow)
                 pp += p1 * p2 * py_temp[k]
             unnorm_p.append(pp * p_obs)
         self.palpha = [xv / sum(unnorm_p) for xv in unnorm_p]
@@ -500,7 +503,7 @@ class Planner:
             pp = 0
             for k in range(ny):
                 p1 = pyp(self.beta_set, self.tm, self.ftm, self.beta_set[j], self.beta_set[k], human_action)
-                p2 = pih(human_action, self.beta_set[k], action_history, self.k_hist)
+                p2 = pih(human_action, self.beta_set[k], action_history, self.k_hist_error)
                 pp += p1 * p2 * py_temp[k]
             unnorm_p.append(pp * p_obs)
         self.pbeta = [xv / sum(unnorm_p) for xv in unnorm_p]
@@ -535,7 +538,7 @@ class Planner:
         ax1.set_ylabel(r'$p_e^\prime$', fontsize=15)
         ax1.set_title(r'$T_y, \quad a^h \in M_1$', fontsize=15)
         # plt.colorbar(label="Like/Dislike Ratio", orientation="vertical")
-        # plt.savefig('heat1.eps', format='eps', bbox_inches='tight', pad_inches=0)
+        plt.savefig('heat1.pdf', format='pdf', bbox_inches='tight', pad_inches=0)
         plt.show()
 
         fig2, ax2 = plt.subplots()
@@ -552,6 +555,6 @@ class Planner:
         ax2.set_ylabel(r'$p_e^\prime$', fontsize=15)
         ax2.set_title(r'$T_y, \quad a^h \in M_2$', fontsize=15)
         plt.colorbar(orientation="vertical")
-        # plt.savefig('heat2.eps', format='eps', bbox_inches='tight', pad_inches=0)
+        plt.savefig('heat2.pdf', format='pdf', bbox_inches='tight', pad_inches=0)
         plt.show()
         return tm, ftm

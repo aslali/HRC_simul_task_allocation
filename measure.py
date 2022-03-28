@@ -107,6 +107,8 @@ class Measure:
         self.p_f.append((start_time - self.init_time, p_following))
         self.p_e.append((start_time - self.init_time, p_error))
         print('time: ', start_time -self.init_time, ' measure')
+        # self.plot_human_measures()
+
 
     def plot_human_measures(self):
         fig, ax = plt.subplots()
@@ -114,14 +116,61 @@ class Measure:
         y_val1 = [x[1] for x in self.p_f]
         x_val2 = [x[0] * self.rfast for x in self.p_e]
         y_val2 = [x[1] for x in self.p_e]
-        ax.plot(x_val1, y_val1)
-        ax.plot(x_val2, y_val2)
+        ax.plot(x_val1, y_val1, linewidth=3)
+        ax.plot(x_val2, y_val2, linewidth=3)
+        ax.set_xlabel('time (s)', fontsize=16)
+        ax.set_ylabel(r'$p_e, p_f$')
+        ax.set_title(r'Expected values of $p_e$ and $p_f$', fontsize=16)
+        ax.set_ylim([0, 1])
+        ax.set_xlim([0, 200])
+        ax.set_xticks([0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200])
+        ax.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        ax.tick_params(axis='x', labelsize=16)
+        ax.tick_params(axis='y', labelsize=16)
         plt.show()
+
+    def plot_human_measure_ind(self):
+        for i in range(len(self.p_f)):
+            fig, ax = plt.subplots()
+            x_val1 = [x[0] * self.rfast for x in self.p_f[0:i+1]]
+            y_val1 = [x[1] for x in self.p_f[0:i+1]]
+            x_val2 = [x[0] * self.rfast for x in self.p_e[0:i+1]]
+            y_val2 = [x[1] for x in self.p_e[0:i+1]]
+            ax.plot(x_val1, y_val1, linewidth=3)
+            ax.plot(x_val2, y_val2, linewidth=3)
+            ax.set_xlabel('time (s)', fontsize=16)
+            ax.set_ylabel(r'$p_e, p_f$')
+            ax.set_title(r'Expected values of $p_e$ and $p_f$', fontsize=16)
+            ax.set_ylim([0, 1])
+            ax.set_xlim([0, 140])
+            ax.set_xticks([0, 20, 40, 60, 80, 100, 120, 140])
+            ax.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+            ax.tick_params(axis='x', labelsize=16)
+            ax.tick_params(axis='y', labelsize=16)
+            filename = 'videoim2/' + 'mm' + str(round(x_val1[-1], 2)) + '.png'
+            # plt.savefig(filename, format='png', bbox_inches='tight', pad_inches=0.1)
 
     def human_dist_error(self, start_time, pe, se):
         st = (start_time - self.init_time) * self.rfast
         self.de[st] = {'perror': pe, 'eset': se}
         print('time: ', st, ' error')
+
+    def plot_dists_error_ind(self):
+        for i in self.de:
+            se = self.de[i]['eset']
+            pe = self.de[i]['perror']
+            fig, ax = plt.subplots()
+            ax.plot(se, pe, linewidth=3)
+            ax.set_ylim([0, 1])
+            ax.set_xlim([0, 1])
+            ax.set_title('Belief about human error', fontsize=16)
+            ax.set_xlabel(r'$p_e$', fontsize=16)
+            ax.set_ylabel(r'$P(p_e)$', fontsize=16)
+            ax.set_xticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+            ax.tick_params(axis='x', labelsize=16)
+            ax.tick_params(axis='y', labelsize=16)
+            filename = 'videoim/' + 'ee' + str(round(i, 2)) + '.png'
+            # plt.savefig(filename, format='png', bbox_inches='tight', pad_inches=0.1)
 
     def plot_dists_error(self):
         nd = len(self.de)
@@ -172,7 +221,26 @@ class Measure:
     def human_dist_follow(self, start_time, pf, sf):
         st = (start_time - self.init_time) * self.rfast
         self.df[st] = {'pfollow': pf, 'fset': sf}
+
+        # plt.show()
         print('time: ', st, ' follow')
+
+    def plot_dists_follow_ind(self):
+        for i in self.df:
+            sf = self.df[i]['fset']
+            pf = self.df[i]['pfollow']
+            fig, ax = plt.subplots()
+            ax.plot(sf, pf, linewidth=3)
+            ax.set_ylim([0, 1])
+            ax.set_xlim([0, 1])
+            ax.set_title('Belief about preference', fontsize=16)
+            ax.set_xlabel(r'$p_f$', fontsize=16)
+            ax.set_ylabel(r'$P(p_f)$', fontsize=16)
+            ax.set_xticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+            ax.tick_params(axis='x', labelsize=16)
+            ax.tick_params(axis='y', labelsize=16)
+            filename = 'videoim/' + 'ff' + str(round(i, 2)) + '.png'
+            # plt.savefig(filename, format='png', bbox_inches='tight', pad_inches=0.1)
 
     def plot_dists_follow(self):
         nd = len(self.df)
@@ -246,16 +314,21 @@ class Measure:
         plt.show()
 
     def run_all(self):
-        self.plot_times_actions()
-        self.plot_human_measures()
-        self.plot_dists_error()
-        self.plot_dists_follow()
-        self.creat_table()
+
 
         filename = self.case_name + ".pickle"
         try:
-            os.makedirs(os.path.dirname(filename), exist_ok=True)
+            # os.makedirs(os.path.dirname(filename), exist_ok=True)
             with open(filename, "wb") as f:
                 pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
         except Exception as ex:
             print("Error during pickling object (Possibly unsupported):", ex)
+
+        self.plot_times_actions()
+        self.plot_human_measures()
+        self.plot_dists_error()
+        self.plot_dists_follow()
+        # self.plot_human_measure_ind()
+        # self.plot_dists_follow_ind()
+        # self.plot_dists_error_ind()
+        self.creat_table()
