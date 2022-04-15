@@ -47,6 +47,7 @@ class Task:
         # self.t_hum_all = None
         # self.t_rob_all = None
         self.t_task_all = {}
+        self.d_task_all = {}
 
         self.task_to_do = task_to_do
 

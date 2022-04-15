@@ -56,7 +56,9 @@ def creat_table(casename):
         allvar['rob_time'].append(fil.rob_time)
         allvar['hum_time'].append(fil.hum_time)
         allvar['d_h'].append(fil.dh)
+        # allvar['d_h'].append(sum(fil.human_travel_distance))
         allvar['d_r'].append(fil.dr)
+        # allvar['d_r'].append(sum(fil.robot_travel_distance))
         allvar['n_h'].append(len(fil.action_times_human))
         allvar['n_r'].append(len(fil.action_times_robot))
 
@@ -77,107 +79,127 @@ def creat_table(casename):
     return allocate_time, maxlen
 
 
-measure = load_data('f4e62.pickle')
+# measure = load_data('Final_dist/f1e4.pickle')
 # measure.run_all().
+creat_table("fair/*")
 
-
-
-def plot_dists_error(self):
-    nd = len(self.de)
-    nc = 3
-    nr = nd // nc
-    if nd % nc > 0:
-        nr += 1
-    fig, axs = plt.subplots(nr, nc, squeeze=False)
-    # fig.tight_layout()
-
-    i = 0
-    j = 0
-    for p in self.de:
-        axs[i, j].plot(self.de[p]['eset'], self.de[p]['perror'])
-        plt.subplots_adjust(hspace=0.2, wspace=0.2)
-        axs[i, j].set_xlim([0, 1])
-        axs[i, j].set_ylim([0, 1])
-        tit = 't={}'.format(round(p, 2))
-        axs[i, j].set_title(tit, y=1.0, pad=-14, fontsize=13)
-        if j > 0:
-            axs[i, j].set_yticklabels([])
-        elif i == 1:
-            pass
-            # axs[i, j].set_ylabel(r'${P}(p_e)$', fontsize=15)
-
-        if i == nr - 1:
-            if j == 1:
-                pass
-                # axs[i, j].set_xlabel(r'$p_e$', fontsize=15)
-
-        else:
-            axs[i, j].set_xticklabels([])
-
-        j += 1
-        if j == nc:
-            j = 0
-            i += 1
-    aa = nc - nd % nc
-    if aa != nc:
-        for ii in range(aa):
-            fig.delaxes(axs[i, j + ii])
-
-    fig.text(0.5, 0.04, r'$p_e$', fontsize=15, ha='center')
-    fig.text(0.04, 0.5, r'$P(p_e)$', fontsize=15, va='center', rotation='vertical')
-    plt.savefig('dist_error.pdf', format='pdf', bbox_inches='tight', pad_inches=0)
-    plt.show()
-
-
-def plot_dists_follow(self):
-    nd = len(self.df)
-    nc = 3
-    nr = nd // nc
-    if nd % nc > 0:
-        nr += 1
-    fig, axs = plt.subplots(nr, nc, squeeze=False)
-
-    i = 0
-    j = 0
-    for p in self.df:
-        axs[i, j].plot(self.df[p]['fset'], self.df[p]['pfollow'])
-        plt.subplots_adjust(hspace=0.2, wspace=0.2)
-        axs[i, j].set_xlim([0, 1])
-        axs[i, j].set_ylim([0, 1])
-        tit = 't={}'.format(round(p, 2))
-        axs[i, j].set_title(tit, y=1.0, pad=-14, fontsize=13)
-        if j > 0:
-            axs[i, j].set_yticklabels([])
-        elif i == 1:
-            pass
-            # axs[i, j].set_ylabel(r'$P(p_f)$', fontsize=15)
-
-        if i == nr - 1:
-            if j == 1:
-                pass
-                # axs[i, j].set_xlabel(r'$p_f$', fontsize=15)
-        else:
-            axs[i, j].set_xticklabels([])
-
-        j += 1
-        if j == nc:
-            j = 0
-            i += 1
-
-    aa = nc - nd % nc
-    if aa != nc:
-        for ii in range(aa):
-            fig.delaxes(axs[i, j + ii])
-
-    fig.text(0.5, 0.04, r'$p_f$', fontsize=15, ha='center')
-    fig.text(0.04, 0.5, r'$P(p_f)$', fontsize=15, va='center', rotation='vertical')
-    plt.savefig('dist_follow.pdf', format='pdf', bbox_inches='tight', pad_inches=0)
-    plt.show()
-
-measure.plot_dists_follow = MethodType(plot_dists_follow, measure)
-measure.plot_dists_error = MethodType(plot_dists_error, measure)
-measure.plot_dists_error()
-measure.plot_dists_follow()
+# def plot_dists_error(self):
+#     nd = len(self.de)
+#     nc = 3
+#     nr = nd // nc
+#     if nd % nc > 0:
+#         nr += 1
+#     fig, axs = plt.subplots(nr, nc, squeeze=False)
+#     # fig.tight_layout()
+#
+#     i = 0
+#     j = 0
+#     for p in self.de:
+#         axs[i, j].plot(self.de[p]['eset'], self.de[p]['perror'])
+#         plt.subplots_adjust(hspace=0.2, wspace=0.2)
+#         axs[i, j].set_xlim([0, 1])
+#         axs[i, j].set_ylim([0, 1])
+#         tit = 't={}'.format(round(p, 2))
+#         axs[i, j].set_title(tit, y=1.0, pad=-14, fontsize=13)
+#         if j > 0:
+#             axs[i, j].set_yticklabels([])
+#         elif i == 1:
+#             pass
+#             # axs[i, j].set_ylabel(r'${P}(p_e)$', fontsize=15)
+#
+#         if i == nr - 1:
+#             if j == 1:
+#                 pass
+#                 # axs[i, j].set_xlabel(r'$p_e$', fontsize=15)
+#
+#         else:
+#             axs[i, j].set_xticklabels([])
+#
+#         j += 1
+#         if j == nc:
+#             j = 0
+#             i += 1
+#     aa = nc - nd % nc
+#     if aa != nc:
+#         for ii in range(aa):
+#             fig.delaxes(axs[i, j + ii])
+#
+#     fig.text(0.5, 0.04, r'$p_e$', fontsize=15, ha='center')
+#     fig.text(0.04, 0.5, r'$P(p_e)$', fontsize=15, va='center', rotation='vertical')
+#     plt.savefig('dist_error.png', format='png', bbox_inches='tight', pad_inches=0)
+#     plt.show()
+# def plot_dists_follow(self):
+#     nd = len(self.df)
+#     nc = 3
+#     nr = nd // nc
+#     if nd % nc > 0:
+#         nr += 1
+#     fig, axs = plt.subplots(nr, nc, squeeze=False)
+#
+#     i = 0
+#     j = 0
+#     for p in self.df:
+#         axs[i, j].plot(self.df[p]['fset'], self.df[p]['pfollow'])
+#         plt.subplots_adjust(hspace=0.2, wspace=0.2)
+#         axs[i, j].set_xlim([0, 1])
+#         axs[i, j].set_ylim([0, 1])
+#         tit = 't={}'.format(round(p, 2))
+#         axs[i, j].set_title(tit, y=1.0, pad=-14, fontsize=13)
+#         if j > 0:
+#             axs[i, j].set_yticklabels([])
+#         elif i == 1:
+#             pass
+#             # axs[i, j].set_ylabel(r'$P(p_f)$', fontsize=15)
+#
+#         if i == nr - 1:
+#             if j == 1:
+#                 pass
+#                 # axs[i, j].set_xlabel(r'$p_f$', fontsize=15)
+#         else:
+#             axs[i, j].set_xticklabels([])
+#
+#         j += 1
+#         if j == nc:
+#             j = 0
+#             i += 1
+#
+#     aa = nc - nd % nc
+#     if aa != nc:
+#         for ii in range(aa):
+#             fig.delaxes(axs[i, j + ii])
+#
+#     fig.text(0.5, 0.04, r'$p_f$', fontsize=15, ha='center')
+#     fig.text(0.04, 0.5, r'$P(p_f)$', fontsize=15, va='center', rotation='vertical')
+#     plt.savefig('dist_follow.png', format='png', bbox_inches='tight', pad_inches=0)
+#     plt.show()
+# def plot_human_measures(self):
+#     fig, ax = plt.subplots()
+#     x_val1 = [x[0] * self.rfast for x in self.p_f]
+#     y_val1 = [x[1] for x in self.p_f]
+#     x_val2 = [x[0] * self.rfast for x in self.p_e]
+#     y_val2 = [x[1] for x in self.p_e]
+#     ax.plot(x_val1, y_val1, linewidth=3)
+#     ax.plot(x_val2, y_val2, linewidth=3)
+#     ax.set_xlabel('time (s)', fontsize=16)
+#     ax.set_ylabel(r'$p_e, p_f$')
+#     lgd=ax.legend([r'$p_f$', r'$p_e$'], fontsize=15, loc='upper left', frameon=False,
+#               bbox_to_anchor=(0.25, -0.1), ncol=2)
+#     ax.set_title(r'Expected values of $p_e$ and $p_f$', fontsize=16)
+#     ax.set_ylim([0, 1])
+#     ax.set_xlim([0, round(x_val1[-1]+10)])
+#     ax.set_xticks(range(0, round(x_val1[-1]+10), 20))
+#     ax.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+#     ax.tick_params(axis='x', labelsize=16)
+#     ax.tick_params(axis='y', labelsize=16)
+#     fig.savefig('samplefigure.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+#     plt.show()
+#
+# measure.plot_dists_follow = MethodType(plot_dists_follow, measure)
+# measure.plot_dists_error = MethodType(plot_dists_error, measure)
+# measure.plot_human_measures = MethodType(plot_human_measures, measure)
+# measure.plot_dists_error()
+# measure.plot_dists_follow()
+# measure.plot_human_measures()
 
 # alloc91, l91 = creat_table("f9_1/*")
 # alloc61, l61 = creat_table("f6_1/*")

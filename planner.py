@@ -5,6 +5,7 @@ import pulp as plp
 from itertools import combinations
 import gurobipy
 import matplotlib.pyplot as plt
+
 plt.rcParams['pdf.fonttype'] = 42
 plt.rcParams['ps.fonttype'] = 42
 import fontTools
@@ -157,13 +158,14 @@ class Planner:
             if i in task.tasks_allocated_to_robot:
                 alloc_task_robot[i] = 1
 
-        constraints = {1: opt_model.addConstraint(
-            plp.LpConstraint(
-                e=z_var - plp.lpSum(
-                    x_vars[i] * (task.t_task_all[i][0] * self.p_human_allocation + hpenalty * (
-                            1 - self.p_human_allocation) + hpenalty * alloc_task_robot[i])
-                    for i in task.remained_task_both),
-                sense=plp.LpConstraintGE, rhs=0, name="constraint_1")),
+        constraints = {
+            1: opt_model.addConstraint(
+                plp.LpConstraint(
+                    e=z_var - plp.lpSum(
+                        x_vars[i] * (task.t_task_all[i][0] * self.p_human_allocation + hpenalty * (
+                                1 - self.p_human_allocation) + hpenalty * alloc_task_robot[i])
+                        for i in task.remained_task_both),
+                    sense=plp.LpConstraintGE, rhs=0, name="constraint_1")),
             2: opt_model.addConstraint(
                 plp.LpConstraint(
                     e=z_var - plp.lpSum(
@@ -171,8 +173,20 @@ class Planner:
                                             + self.p_human_error * error_penalty) * 1
                                            + rpenalty * (1 - 1))
                         for i in task.remained_task_both),
-                    sense=plp.LpConstraintGE, rhs=0, name="constraint_2"))}
-
+                    sense=plp.LpConstraintGE, rhs=0, name="constraint_2")),
+            3: opt_model.addConstraint(
+                plp.LpConstraint(
+                    e=plp.lpSum((1 - 2 * x_vars[i]) * task.d_task_all[i]) - 4000,
+                    sense=plp.LpConstraintLE, rhs=0, name="constraint_3"
+                )
+            ),
+            4: opt_model.addConstraint(
+                plp.LpConstraint(
+                        e=plp.lpSum((1 - 2 * x_vars[i]) * task.d_task_all[i]) + 4000,
+                        sense=plp.LpConstraintGE, rhs=0, name="constraint_4"
+                )
+            ),
+        }
 
         # constraints = {1: opt_model.addConstraint(
         #     plp.LpConstraint(
@@ -486,7 +500,7 @@ class Planner:
                 p_failed = n_failed / nhistk
 
                 if human_action == 1:
-                    p = max(0.001, (1 - p_failed) * (1-alpha))
+                    p = max(0.001, (1 - p_failed) * (1 - alpha))
                 else:
                     p = max(0.001, p_failed * alpha)
             else:
@@ -538,7 +552,7 @@ class Planner:
         ax1.set_ylabel(r'$p_e^\prime$', fontsize=15)
         ax1.set_title(r'$T_y, \quad a^h \in M_1$', fontsize=15)
         # plt.colorbar(label="Like/Dislike Ratio", orientation="vertical")
-        plt.savefig('heat1.pdf', format='pdf', bbox_inches='tight', pad_inches=0)
+        # plt.savefig('heat1.pdf', format='pdf', bbox_inches='tight', pad_inches=0)
         plt.show()
 
         fig2, ax2 = plt.subplots()
@@ -555,6 +569,6 @@ class Planner:
         ax2.set_ylabel(r'$p_e^\prime$', fontsize=15)
         ax2.set_title(r'$T_y, \quad a^h \in M_2$', fontsize=15)
         plt.colorbar(orientation="vertical")
-        plt.savefig('heat2.pdf', format='pdf', bbox_inches='tight', pad_inches=0)
+        # plt.savefig('heat2.pdf', format='pdf', bbox_inches='tight', pad_inches=0)
         plt.show()
         return tm, ftm

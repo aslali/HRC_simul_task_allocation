@@ -40,8 +40,8 @@ for i in task_to_do.values():
     pattern_col[(i[0], i[1])] = col[i[2]]
 
 sim_env = visualhci.SHSCPackaging(pattern_col, fast_run=fast_run)
-measure = measure.Measure(case_name='f4e62', fast_run=fast_run, rfast=rfast)
-human = human.Human(speed=200, task=task, p_conformity=0.1, p_error=0.35, sim_env=sim_env, time_step=time_step, measure=measure, fast_run=fast_run, rfast=rfast)
+measure = measure.Measure(case_name='fair/f5', fast_run=fast_run, rfast=rfast)
+human = human.Human(speed=200, task=task, p_conformity=0.9, p_error=0.1, sim_env=sim_env, time_step=time_step, measure=measure, fast_run=fast_run, rfast=rfast)
 robot = robot.Robot(speed=150, task=task, human=human, sim_env=sim_env, time_step=time_step, measure=measure, fast_run=fast_run, rfast=rfast)
 remained_tasks = task.n_task_total
 newAllocation = 1

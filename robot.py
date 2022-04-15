@@ -63,15 +63,19 @@ class Robot(threading.Thread):
         for i in range(5):
             self.task.t_task_all[i] = (self.hum_slopdist['TW1'][0] * 2 / self.human.speed,
                                        self.rob_slopdist['TW1'][0] * 2 / self.speed + 2)
+            self.task.d_task_all[i] = self.hum_slopdist['TW1'][0] * 2
         for i in range(5, 10):
             self.task.t_task_all[i] = (self.hum_slopdist['TW2'][0] * 2 / self.human.speed,
                                        self.rob_slopdist['TW2'][0] * 2 / self.speed + 2)
+            self.task.d_task_all[i] = self.hum_slopdist['TW2'][0] * 2
         for i in range(10, 15):
             self.task.t_task_all[i] = (self.hum_slopdist['TW3'][0] * 2 / self.human.speed,
                                        self.rob_slopdist['TW3'][0] * 2 / self.speed + 2)
+            self.task.d_task_all[i] = self.hum_slopdist['TW3'][0] * 2
         for i in range(15, 20):
             self.task.t_task_all[i] = (self.hum_slopdist['TW4'][0] * 2 / self.human.speed,
                                        self.rob_slopdist['TW4'][0] * 2 / self.speed + 2)
+            self.task.d_task_all[i] = self.hum_slopdist['TW4'][0] * 2
 
     def action_selection(self):
         pass
