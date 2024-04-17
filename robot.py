@@ -568,4 +568,4 @@ class Robot(threading.Thread):
                 aaaaaaa = 1
                 isfinished = len(self.task.remained_task_both) + len(self.task.remained_task_robot_only) == 0
 
-        self.measure.run_all()
+        # self.measure.run_all()

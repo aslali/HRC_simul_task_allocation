@@ -222,7 +222,7 @@ class Planner:
         objective = z_var
         opt_model.sense = plp.LpMinimize
         opt_model.setObjective(objective)
-        opt_model.solve(plp.GUROBI_CMD(timeLimit=3, msg=False, warmStart=True))
+        opt_model.solve(plp.GUROBI_CMD(timeLimit=3, msg=True, warmStart=True))
 
         varlist = opt_model.variablesDict()
         self.last_selection = varlist

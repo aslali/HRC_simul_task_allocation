@@ -119,17 +119,22 @@ class Measure:
         ax.plot(x_val1, y_val1, linewidth=3)
         ax.plot(x_val2, y_val2, linewidth=3)
         ax.set_xlabel('time (s)', fontsize=16)
-        ax.set_ylabel(r'$p_e, p_f$')
-        lgd=ax.legend([r'$p_f$', r'$p_e$'], fontsize=15, loc='upper left', frameon=False,
-                  bbox_to_anchor=(0.25, -0.1), ncol=2)
-        ax.set_title(r'Expected values of $p_e$ and $p_f$', fontsize=16)
-        ax.set_ylim([0, 1])
+        ax.set_ylabel(r'$\alpha_e, \alpha_f$', fontsize=16)
+        # lgd=ax.legend([r'$\alpha_f$', r'$\alpha_e$'], fontsize=15, loc='upper left', frameon=False,
+        #           bbox_to_anchor=(0.25, -0.1), ncol=2)
+        lgd = ax.legend([r'$\alpha_f$: Following Preference', r'$\alpha_p$: Error-proneness'],
+                        fontsize=12, loc='upper left', frameon=False,
+                        ncol=1)
+        bbox_to_anchor=(0.25, 1)
+        ax.set_title(r'Bayes estimates of $\alpha_e$ and $\alpha_f$', fontsize=16)
+        ax.set_ylim([0, 1.1])
         ax.set_xlim([0, round(x_val1[-1]+10)])
         ax.set_xticks(range(0, round(x_val1[-1]+10), 20))
         ax.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
         ax.tick_params(axis='x', labelsize=16)
         ax.tick_params(axis='y', labelsize=16)
-        # fig.savefig('samplefigure.png', format='png', bbox_extra_artists=(lgd,), bbox_inches='tight')
+        plt.tight_layout()
+        fig.savefig('simul_estimate98.eps', format='eps')
         plt.show()
 
     def plot_human_measure_ind(self):
@@ -216,9 +221,9 @@ class Measure:
             for ii in range(aa):
                 fig.delaxes(axs[i, j + ii])
 
-        fig.text(0.5, 0.04, r'$p_e$', fontsize=15, ha='center')
-        fig.text(0.04, 0.5, r'$P(p_e)$', fontsize=15, va='center', rotation='vertical')
-        # plt.savefig('dist_error.eps', format='eps', bbox_inches='tight', pad_inches=0)
+        fig.text(0.5, 0.04, r'$\alpha_e$', fontsize=15, ha='center')
+        fig.text(0.04, 0.5, r'$P(\alpha_e)$', fontsize=15, va='center', rotation='vertical')
+        # plt.savefig('dist_error5.eps', format='eps', bbox_inches='tight', pad_inches=0)
         plt.show()
 
     def human_dist_follow(self, start_time, pf, sf):
@@ -244,7 +249,7 @@ class Measure:
             ax.tick_params(axis='y', labelsize=16)
             filename = 'videoim/' + 'ff' + str(round(i, 2)) + '.png'
             # plt.savefig(filename, format='png', bbox_inches='tight', pad_inches=0.1)
-
+    #
     def plot_dists_follow(self):
         nd = len(self.df)
         nc = 3
@@ -285,9 +290,9 @@ class Measure:
             for ii in range(aa):
                 fig.delaxes(axs[i, j + ii])
 
-        fig.text(0.5, 0.04, r'$p_f$', fontsize=15, ha='center')
-        fig.text(0.04, 0.5, r'$P(p_f)$', fontsize=15, va='center', rotation='vertical')
-        # plt.savefig('dist_follow.eps', format='eps', bbox_inches='tight', pad_inches=0)
+        fig.text(0.5, 0.04, r'$\alpha_f$', fontsize=15, ha='center')
+        fig.text(0.04, 0.5, r'$P(\alpha_f)$', fontsize=15, va='center', rotation='vertical')
+        # plt.savefig('dist_follow_4.eps', format='eps', bbox_inches='tight', pad_inches=0)
         plt.show()
 
     def plot_times_actions(self):

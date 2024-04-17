@@ -8,7 +8,7 @@ from types import MethodType
 
 from matplotlib.ticker import MaxNLocator
 
-plt.rcParams['text.usetex'] = True
+# plt.rcParams['text.usetex'] = True
 
 
 def load_data(filename):
@@ -25,7 +25,7 @@ def creat_table(casename):
         c = {}
         for i in allvar:
             c[i] = round(mean(allvar[i]), 1)
-            sem = round(np.std(allvar[i], ddof=1), 2)
+            sem = round(np.std(allvar[i], ddof=0), 2)
             print('Mean of {0} is {1} and sem is {2}'.format(i, c[i], sem))
         print('{0} & {1} & {2} & {3} & {4} & {5} & {6} & {7} & {8} & {9} & {10}'.format(c['nwrong'], c['twrong'],
                                                                                         c['n_tot_hum_assign'],
@@ -80,7 +80,8 @@ def creat_table(casename):
 
 
 # measure = load_data('Final_dist/f1e4.pickle')
-# measure.run_all().
+# measure = load_data('f9_8/f9e8_03.pickle')
+# measure.run_all()
 creat_table("fair/*")
 
 # def plot_dists_error(self):
@@ -220,7 +221,7 @@ creat_table("fair/*")
 # ltx1 = max(l31, l61, l91)
 # ltx4 = max(l34, l64, l94)
 # ltx3 = max(l38, l68, l98)
-#
+# #
 # x91 = range(1, l91 + 1)
 # x61 = range(1, l61 + 1)
 # x31 = range(1, l31 + 1)
@@ -232,7 +233,7 @@ creat_table("fair/*")
 # x98 = range(1, l98 + 1)  # x98 =
 # x68 = range(1, 27) #range(1, l68 + 1)
 # x38 = range(1, 27) # range(1, l38 + 1)
-#
+# #
 # y91 = [alloc91[i] for i in x91]
 # y61 = [alloc61[i] for i in x61]
 # y31 = [alloc31[i] for i in x31]
@@ -253,37 +254,40 @@ creat_table("fair/*")
 # ax.plot(x31, y31, 'b')
 # ax.set_ylim([0, 12])
 # ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-# ax.set_title(r'$P_\textit{error}=0.1$', fontsize=15)
-# ax.legend([r'$P_\textit{follower}=0.9$', r'$P_\textit{follower}=0.6$'
-#               , r'$P_\textit{follower}=0.3$'], fontsize=13)
+# ax.set_title(r'$P_{error}=0.1$', fontsize=15)
+# ax.legend([r'$P_{follower}=0.9$', r'$P_{follower}=0.6$'
+#               , r'$P_{follower}=0.3$'], fontsize=13)
 # ax.set_xlabel(r'$n$ (Action number)', fontsize=15)
-# ax.set_ylabel(r'$\sum_{i=1}^n{\bigg[a_{r,i} = a^{assign}_{r}\bigg]}$', fontsize=15)
+# ax.set_ylabel(r'$C_r^h$', fontsize=15)
+# fig.savefig('ncml1.eps', format='eps', bbox_inches='tight')
 # plt.show()
-#
+# #
 # fig, ax = plt.subplots()
 # ax.plot(x94, y94, 'r')
 # ax.plot(x64, y64, 'g')
 # ax.plot(x34, y34, 'b')
 # ax.set_ylim([0, 12])
-# ax.set_title(r'$P_\textit{error}=0.4$', fontsize=15)
-# ax.legend([r'$P_\textit{follower}=0.9$', r'$P_\textit{follower}=0.6$'
-#               , r'$P_\textit{follower}=0.3$'], fontsize=13)
+# ax.set_title(r'$P_{error}=0.4$', fontsize=15)
+# ax.legend([r'$P_{follower}=0.9$', r'$P_{follower}=0.6$'
+#               , r'$P_{follower}=0.3$'], fontsize=13)
 # ax.set_xlabel(r'$n$ (Action number)', fontsize=15)
-# ax.set_ylabel(r'$\sum_{i=1}^n{\bigg[a_{r,i} = a^{assign}_{r}\bigg]}$', fontsize=15)
+# ax.set_ylabel(r'$C_r^h$', fontsize=15)
+# fig.savefig('ncml4.eps', format='eps', bbox_inches='tight')
 # plt.show()
-#
+# #
 # fig, ax = plt.subplots()
 # ax.plot(x98, y98, 'r')
 # ax.plot(x68, y68, 'g')
 # ax.plot(x38, y38, 'b')
 # ax.set_ylim([0, 12])
-# ax.set_title(r'$P_\textit{error}=0.8$', fontsize=15)
-# ax.legend([r'$P_\textit{follower}=0.9$', r'$P_\textit{follower}=0.6$'
-#               , r'$P_\textit{follower}=0.3$'], fontsize=13)
+# ax.set_title(r'$P_{error}=0.8$', fontsize=15)
+# ax.legend([r'$P_{follower}=0.9$', r'$P_{follower}=0.6$'
+#               , r'$P_{follower}=0.3$'], fontsize=13)
 # ax.set_xlabel(r'$n$ (Action number)', fontsize=15)
-# ax.set_ylabel(r'$\sum_{i=1}^n{\bigg[a_{r,i} = a^{assign}_{r}\bigg]}$', fontsize=15)
+# ax.set_ylabel(r'$C_r^h$', fontsize=15)
+# fig.savefig('ncml8.eps', format='eps', bbox_inches='tight')
 # plt.show()
-#
+# #
 # lt9x = max(l91, l94, l98)
 # lt6x = max(l61, l64, l68)
 # lt3x = max(l31, l34, l38)
@@ -308,12 +312,12 @@ creat_table("fair/*")
 # ax.plot(x94, yy94, 'g')
 # ax.plot(x98, yy98, 'r')
 # ax.set_ylim([0, 12])
-# ax.set_title(r'$P_\textit{follower}=0.9$', fontsize=15)
-# ax.legend([r'$P_\textit{error}=0.1$', r'$P_\textit{error}=0.4$'
-#               , r'$P_\textit{error}=0.8$'], fontsize=13)
+# ax.set_title(r'$P_{follower}=0.9$', fontsize=15)
+# ax.legend([r'$P_{error}=0.1$', r'$P_{error}=0.4$'
+#               , r'$P_{error}=0.8$'], fontsize=13)
 # ax.set_xlabel(r'$n$ (Action number)', fontsize=15)
-# ax.set_ylabel('Cumulative number', fontsize=15)
-# fig.savefig('cml9.pdf', bbox_inches='tight')
+# ax.set_ylabel(r'$C_r^h$', fontsize=15)
+# fig.savefig('cml9.eps', format='eps', bbox_inches='tight')
 # plt.show()
 #
 # fig, ax = plt.subplots()
@@ -321,12 +325,12 @@ creat_table("fair/*")
 # ax.plot(x64, yy64, 'g')
 # ax.plot(x68, yy68, 'r')
 # ax.set_ylim([0, 12])
-# ax.set_title(r'$P_\textit{follower}=0.6$', fontsize=15)
-# ax.legend([r'$P_\textit{error}=0.1$', r'$P_\textit{error}=0.4$'
-#               , r'$P_\textit{error}=0.8$'], fontsize=13)
+# ax.set_title(r'$P_{follower}=0.6$', fontsize=15)
+# ax.legend([r'$P_{error}=0.1$', r'$P_{error}=0.4$'
+#               , r'$P_{error}=0.8$'], fontsize=13)
 # ax.set_xlabel(r'$n$ (Action number)', fontsize=15)
-# ax.set_ylabel('Cumulative number', fontsize=15)
-# fig.savefig('cml6.pdf', bbox_inches='tight')
+# ax.set_ylabel(r'$C_r^h$', fontsize=15)
+# fig.savefig('cml6.eps', format='eps', bbox_inches='tight')
 # plt.show()
 #
 # fig, ax = plt.subplots()
@@ -334,12 +338,12 @@ creat_table("fair/*")
 # ax.plot(x34, yy34, 'g')
 # ax.plot(x38, yy38, 'r')
 # ax.set_ylim([0, 12])
-# ax.set_title(r'$P_\textit{follower}=0.3$', fontsize=15)
-# ax.legend([r'$P_\textit{error}=0.1$', r'$P_\textit{error}=0.4$'
-#               , r'$P_\textit{error}=0.8$'], fontsize=13)
+# ax.set_title(r'$P_{follower}=0.3$', fontsize=15)
+# ax.legend([r'$P_{error}=0.1$', r'$P_{error}=0.4$',
+#            r'$P_{error}=0.8$'], fontsize=13)
 # ax.set_xlabel(r'$n$ (Action number)', fontsize=15)
-# ax.set_ylabel('Cumulative number', fontsize=15)
-# fig.savefig('cml3.pdf', bbox_inches='tight')
+# ax.set_ylabel(r'$C_r^h$', fontsize=15)
+# fig.savefig('cml3.eps', format='eps', bbox_inches='tight')
 # plt.show()
 #
 #
