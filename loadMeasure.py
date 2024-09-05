@@ -82,7 +82,7 @@ def creat_table(casename):
 # measure = load_data('Final_dist/f1e4.pickle')
 # measure = load_data('f9_8/f9e8_03.pickle')
 # measure.run_all()
-creat_table("fair/*")
+# creat_table("fair/*")
 
 # def plot_dists_error(self):
 #     nd = len(self.de)
