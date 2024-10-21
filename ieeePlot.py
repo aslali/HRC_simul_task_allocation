@@ -90,7 +90,7 @@ def plot_case_bayes(caseNames):
                      label='±1 Std Dev')
 
     ax.set_xlabel('Normalized time', fontsize=20)
-    ax.set_ylabel(r'$\alpha_e, \alpha_f$', fontsize=20)
+    ax.set_ylabel(r'$E(\alpha_f), E(\alpha_e)$', fontsize=20)
     # lgd=ax.legend([r'$\alpha_f$', r'$\alpha_e$'], fontsize=15, loc='upper left', frameon=False,
     # #           bbox_to_anchor=(0.25, -0.1), ncol=2)
     handles, labels = plt.gca().get_legend_handles_labels()
@@ -101,10 +101,10 @@ def plot_case_bayes(caseNames):
               r'$\alpha_{e}$ ($P_{error}=0.4$)', r'$\alpha_{e}$ ($P_{error}=0.8$)']
     # plt.legend()
 
-    lgd = ax.legend(handles, labels,fontsize=15, loc='upper left', frameon=False,
+    lgd = ax.legend(handles, labels, fontsize=15, loc='upper left', frameon=False,
                     ncol=2)
     bbox_to_anchor=(0.25, 1)
-    ax.set_title(r'Bayes estimates of $\alpha_e$ and $\alpha_f$ ($P_{follow}=0.9$)', fontsize=19)
+    ax.set_title(r'Expected $\alpha_f$ and $\alpha_e$ over time ($P_{follow}=0.3$)', fontsize=19)
     ax.set_ylim([0, 1.3])
     ax.set_xlim([0, 1])
     # ax.set_xticks(range(0, round(x_val1[-1]+10), 20))
@@ -112,10 +112,10 @@ def plot_case_bayes(caseNames):
     ax.tick_params(axis='x', labelsize=16)
     ax.tick_params(axis='y', labelsize=16)
     plt.tight_layout()
-    fig.savefig('pfollow9_simul.pdf', format='pdf', )
+    fig.savefig('pfollow3_simul.pdf', format='pdf', )
     plt.show()
 
 
-# plot_case_bayes(['f3_1/*', 'f3_4/*', 'f3_8/*'])
+plot_case_bayes(['f3_1/*', 'f3_4/*', 'f3_8/*'])
 # plot_case_bayes(['f6_1/*', 'f6_4/*', 'f6_8/*'])
-plot_case_bayes(['f9_1/*', 'f9_4/*', 'f9_8/*'])
+# plot_case_bayes(['f9_1/*', 'f9_4/*', 'f9_8/*'])

@@ -202,91 +202,105 @@ def creat_table(casename):
 # measure.plot_dists_follow()
 # measure.plot_human_measures()
 
-# alloc91, l91 = creat_table("f9_1/*")
-# alloc61, l61 = creat_table("f6_1/*")
-# alloc31, l31 = creat_table("f3_1/*")
+alloc91, l91 = creat_table("f9_1/*")
+alloc61, l61 = creat_table("f6_1/*")
+alloc31, l31 = creat_table("f3_1/*")
+
+alloc94, l94 = creat_table("f9_4/*")
+alloc64, l64 = creat_table("f6_4/*")
+alloc34, l34 = creat_table("f3_4/*")
+
+alloc98, l98 = creat_table("f9_8/*")
+alloc68, l68 = creat_table("f6_8/*")
+alloc38, l38 = creat_table("f3_8/*")
+
+creat_table("fn3_1/*")
+creat_table("fn3_4/*")
+creat_table("fn3_8/*")
+
+ltx1 = max(l31, l61, l91)
+ltx4 = max(l34, l64, l94)
+ltx3 = max(l38, l68, l98)
 #
-# alloc94, l94 = creat_table("f9_4/*")
-# alloc64, l64 = creat_table("f6_4/*")
-# alloc34, l34 = creat_table("f3_4/*")
+x91 = range(1, l91 + 1)
+x61 = range(1, l61 + 1)
+x31 = range(1, l31 + 1)
+
+x94 = range(1, l94 + 1)
+x64 = range(1, l64 + 1)
+x34 = range(1, l34 + 1)
+
+x98 = range(1, l98 + 1)  # x98 =
+x68 = range(1, 27) #range(1, l68 + 1)
+x38 = range(1, 27) # range(1, l38 + 1)
 #
-# alloc98, l98 = creat_table("f9_8/*")
-# alloc68, l68 = creat_table("f6_8/*")
-# alloc38, l38 = creat_table("f3_8/*")
+y91 = [alloc91[i] for i in x91]
+y61 = [alloc61[i] for i in x61]
+y31 = [alloc31[i] for i in x31]
+
+xx4 = range(1, ltx4 + 1)
+y94 = [alloc94[i] for i in x94]
+y64 = [alloc64[i] for i in x64]
+y34 = [alloc34[i] for i in x34]
+
+xx8 = range(1, ltx3 + 1)
+y98 = [alloc98[i] for i in x98]
+y68 = [alloc68[i] for i in x68]
+y38 = [alloc38[i] for i in x38]
 #
-# creat_table("fn3_1/*")
-# creat_table("fn3_4/*")
-# creat_table("fn3_8/*")
-#
-# ltx1 = max(l31, l61, l91)
-# ltx4 = max(l34, l64, l94)
-# ltx3 = max(l38, l68, l98)
-# #
-# x91 = range(1, l91 + 1)
-# x61 = range(1, l61 + 1)
-# x31 = range(1, l31 + 1)
-#
-# x94 = range(1, l94 + 1)
-# x64 = range(1, l64 + 1)
-# x34 = range(1, l34 + 1)
-#
-# x98 = range(1, l98 + 1)  # x98 =
-# x68 = range(1, 27) #range(1, l68 + 1)
-# x38 = range(1, 27) # range(1, l38 + 1)
-# #
-# y91 = [alloc91[i] for i in x91]
-# y61 = [alloc61[i] for i in x61]
-# y31 = [alloc31[i] for i in x31]
-#
-# xx4 = range(1, ltx4 + 1)
-# y94 = [alloc94[i] for i in x94]
-# y64 = [alloc64[i] for i in x64]
-# y34 = [alloc34[i] for i in x34]
-#
-# xx8 = range(1, ltx3 + 1)
-# y98 = [alloc98[i] for i in x98]
-# y68 = [alloc68[i] for i in x68]
-# y38 = [alloc38[i] for i in x38]
-#
-# fig, ax = plt.subplots()
-# ax.plot(x91, y91, 'r')
-# ax.plot(x61, y61, 'g')
-# ax.plot(x31, y31, 'b')
-# ax.set_ylim([0, 12])
-# ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-# ax.set_title(r'$P_{error}=0.1$', fontsize=15)
-# ax.legend([r'$P_{follower}=0.9$', r'$P_{follower}=0.6$'
-#               , r'$P_{follower}=0.3$'], fontsize=13)
-# ax.set_xlabel(r'$n$ (Action number)', fontsize=15)
-# ax.set_ylabel(r'$C_r^h$', fontsize=15)
-# fig.savefig('ncml1.eps', format='eps', bbox_inches='tight')
-# plt.show()
-# #
-# fig, ax = plt.subplots()
-# ax.plot(x94, y94, 'r')
-# ax.plot(x64, y64, 'g')
-# ax.plot(x34, y34, 'b')
-# ax.set_ylim([0, 12])
-# ax.set_title(r'$P_{error}=0.4$', fontsize=15)
-# ax.legend([r'$P_{follower}=0.9$', r'$P_{follower}=0.6$'
-#               , r'$P_{follower}=0.3$'], fontsize=13)
-# ax.set_xlabel(r'$n$ (Action number)', fontsize=15)
-# ax.set_ylabel(r'$C_r^h$', fontsize=15)
-# fig.savefig('ncml4.eps', format='eps', bbox_inches='tight')
-# plt.show()
-# #
-# fig, ax = plt.subplots()
-# ax.plot(x98, y98, 'r')
-# ax.plot(x68, y68, 'g')
-# ax.plot(x38, y38, 'b')
-# ax.set_ylim([0, 12])
-# ax.set_title(r'$P_{error}=0.8$', fontsize=15)
-# ax.legend([r'$P_{follower}=0.9$', r'$P_{follower}=0.6$'
-#               , r'$P_{follower}=0.3$'], fontsize=13)
-# ax.set_xlabel(r'$n$ (Action number)', fontsize=15)
-# ax.set_ylabel(r'$C_r^h$', fontsize=15)
-# fig.savefig('ncml8.eps', format='eps', bbox_inches='tight')
-# plt.show()
+fig, ax = plt.subplots()
+ax.plot(x91, y91, 'r', linewidth=2.5)
+ax.plot(x61, y61, 'g', linewidth=2.5)
+ax.plot(x31, y31, 'b', linewidth=2.5)
+ax.set_ylim([0, 12])
+ax.set_xlim([0, 27])
+ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+ax.set_title(r'$P_{error}=0.1$', fontsize=20)
+ax.legend([r'$P_{follower}=0.9$', r'$P_{follower}=0.6$'
+              , r'$P_{follower}=0.3$'], fontsize=16)
+ax.set_xlabel(r'$n$ (Action number)', fontsize=20)
+ax.set_ylabel(r'$C_r^h$', fontsize=23)
+plt.xticks(np.arange(start=0, stop=28, step=3), fontsize=16)
+plt.yticks(fontsize=16)
+plt.tight_layout()
+fig.savefig('ncml1.eps', format='eps')
+plt.show()
+# # #
+fig, ax = plt.subplots()
+ax.plot(x94, y94, 'r', linewidth=2.5)
+ax.plot(x64, y64, 'g', linewidth=2.5)
+ax.plot(x34, y34, 'b', linewidth=2.5)
+ax.set_ylim([0, 12])
+ax.set_xlim([0, 27])
+ax.set_title(r'$P_{error}=0.4$', fontsize=20)
+ax.legend([r'$P_{follower}=0.9$', r'$P_{follower}=0.6$'
+              , r'$P_{follower}=0.3$'], fontsize=16)
+ax.set_xlabel(r'$n$ (Action number)', fontsize=20)
+ax.set_ylabel(r'$C_r^h$', fontsize=23)
+plt.xticks(np.arange(start=0, stop=28, step=3), fontsize=16)
+plt.yticks(fontsize=16)
+plt.tight_layout()
+fig.savefig('ncml4.eps', format='eps')
+plt.show()
+# # #
+fig, ax = plt.subplots()
+ax.plot(x98, y98, 'r', linewidth=2.5)
+ax.plot(x68, y68, 'g', linewidth=2.5)
+ax.plot(x38, y38, 'b', linewidth=2.5)
+ax.set_ylim([0, 12])
+ax.set_xlim([0, 27])
+ax.set_title(r'$P_{error}=0.8$', fontsize=20)
+ax.legend([r'$P_{follower}=0.9$', r'$P_{follower}=0.6$'
+              , r'$P_{follower}=0.3$'], fontsize=16)
+ax.set_xlabel(r'$n$ (Action number)', fontsize=20)
+ax.set_ylabel(r'$C_r^h$', fontsize=23)
+plt.xticks(np.arange(start=0, stop=28, step=3), fontsize=16)
+plt.yticks(fontsize=16)
+plt.tight_layout()
+fig.savefig('ncml8.eps', format='eps')
+plt.show()
+
+
 # #
 # lt9x = max(l91, l94, l98)
 # lt6x = max(l61, l64, l68)
